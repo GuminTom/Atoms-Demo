@@ -22,6 +22,11 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+def _prepare_password(password: str) -> str:
+    """Truncate password to 72 bytes for bcrypt compatibility."""
+    return password[:72]
+
+
 class AuthService:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -96,7 +101,7 @@ class AuthService:
             raise ValueError("Email already exists")
 
         # Create local user
-        hashed_password = pwd_context.hash(password)
+        hashed_password = pwd_context.hash(_prepare_password(password))
         local_user = LocalUser(
             id=str(uuid.uuid4()),
             username=username,
@@ -156,7 +161,7 @@ class AuthService:
         if not local_user:
             raise ValueError("Invalid username or password")
 
-        if not pwd_context.verify(password, local_user.hashed_password):
+        if not pwd_context.verify(_prepare_password(password), local_user.hashed_password):
             raise ValueError("Invalid username or password")
 
         # Update last login
