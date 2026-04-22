@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -21,9 +22,11 @@ import {
   Palette,
   Loader2,
   CheckCircle2,
+  ArrowLeft,
 } from 'lucide-react';
 
 export default function Profile() {
+  const navigate = useNavigate();
   const { user, logout, refetch } = useAuth();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user?.name || '');
@@ -54,6 +57,15 @@ export default function Profile() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate('/')}
+        className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="w-4 h-4 mr-1" />
+        Back
+      </Button>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground">Profile</h1>
         <p className="text-muted-foreground text-sm mt-1">Manage your account settings and preferences</p>

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { client } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
 import {
   Code2,
   Rocket,
@@ -14,6 +16,7 @@ import {
   XCircle,
   Loader2,
   Clock,
+  ArrowLeft,
 } from 'lucide-react';
 
 interface AppItem {
@@ -34,6 +37,7 @@ interface Deployment {
 }
 
 export default function Statistics() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [apps, setApps] = useState<AppItem[]>([]);
   const [deployments, setDeployments] = useState<Deployment[]>([]);
@@ -98,6 +102,15 @@ export default function Statistics() {
   if (loading) {
     return (
       <div className="p-6 max-w-5xl mx-auto">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/')}
+          className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          Back
+        </Button>
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-foreground">Statistics</h1>
           <p className="text-muted-foreground text-sm mt-1">Track your development activity and usage</p>
@@ -118,6 +131,15 @@ export default function Statistics() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate('/')}
+        className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="w-4 h-4 mr-1" />
+        Back
+      </Button>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground">Statistics</h1>
         <p className="text-muted-foreground text-sm mt-1">Track your development activity and usage</p>

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { client } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Card, CardContent } from '../components/ui/card';
@@ -20,6 +21,7 @@ import {
   Trash2,
   ExternalLink,
   Zap,
+  ArrowLeft,
 } from 'lucide-react';
 
 interface Deployment {
@@ -58,6 +60,7 @@ const statusBg: Record<string, string> = {
 };
 
 export default function Deployments() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [deployments, setDeployments] = useState<Deployment[]>([]);
   const [apps, setApps] = useState<AppItem[]>([]);
@@ -272,6 +275,15 @@ export default function Deployments() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate('/')}
+        className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="w-4 h-4 mr-1" />
+        Back
+      </Button>
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Deployments</h1>

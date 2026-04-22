@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { usePreferences } from '../contexts/PreferencesContext';
 import { api } from '../lib/api';
@@ -25,6 +26,7 @@ import {
   Code2,
   Bell,
   Unplug,
+  ArrowLeft,
 } from 'lucide-react';
 
 interface ModelOption {
@@ -49,6 +51,7 @@ interface ApiKeyEntry {
 }
 
 export default function SettingsPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { prefs, updatePrefs } = usePreferences();
   const [activeTab, setActiveTab] = useState('model');
@@ -227,6 +230,15 @@ export default function SettingsPage() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate('/')}
+        className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="w-4 h-4 mr-1" />
+        Back
+      </Button>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <Settings className="w-6 h-6 text-violet-400" />
