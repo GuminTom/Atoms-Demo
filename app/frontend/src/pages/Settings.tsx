@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { usePreferences } from '../contexts/PreferencesContext';
-import { client } from '../lib/api';
+import { api } from '../lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -25,7 +25,6 @@ import {
   Code2,
   Bell,
   Unplug,
-  ExternalLink,
 } from 'lucide-react';
 
 interface ModelOption {
@@ -82,10 +81,8 @@ export default function SettingsPage() {
 
   const loadSettings = async () => {
     try {
-      // Load user preferences from backend
-      const res = await client.api.get('/api/v1/users/preferences');
-      if (res?.data) {
-        const data = res.data;
+      const data = await api.get('/api/v1/users/preferences');
+      if (data) {
         if (data.default_model) {
           setDefaultModel(data.default_model);
           setSavedModel(data.default_model);
@@ -116,7 +113,7 @@ export default function SettingsPage() {
   const saveModelConfig = async () => {
     setSaving(true);
     try {
-      await client.api.put('/api/v1/users/preferences', {
+      await api.put('/api/v1/users/preferences', {
         default_model: defaultModel,
       });
       setSavedModel(defaultModel);
@@ -132,7 +129,7 @@ export default function SettingsPage() {
     if (!newKeyProvider.trim() || !newKeyValue.trim()) return;
     setSaving(true);
     try {
-      await client.api.post('/api/v1/users/api-keys', {
+      await api.post('/api/v1/users/api-keys', {
         provider: newKeyProvider.trim().toLowerCase(),
         key: newKeyValue.trim(),
       });
@@ -157,7 +154,7 @@ export default function SettingsPage() {
   const deleteApiKey = async (provider: string) => {
     setSaving(true);
     try {
-      await client.api.delete(`/api/v1/users/api-keys/${provider}`);
+      await api.delete(`/api/v1/users/api-keys/${provider}`);
       setApiKeys(prev =>
         prev.map(k =>
           k.provider === provider ? { ...k, key_preview: '', is_set: false } : k
@@ -174,8 +171,7 @@ export default function SettingsPage() {
   const handleGithubBind = async () => {
     setGithubLoading(true);
     try {
-      // Simulate GitHub OAuth flow
-      await client.api.post('/api/v1/users/github/bind');
+      await api.post('/api/v1/users/github/bind');
       setGithubBound(true);
       setGithubUsername(user?.name?.toLowerCase().replace(/\s/g, '') || 'developer');
       showSaveSuccess('github');
@@ -192,7 +188,7 @@ export default function SettingsPage() {
   const handleGithubUnbind = async () => {
     setGithubLoading(true);
     try {
-      await client.api.delete('/api/v1/users/github/unbind');
+      await api.delete('/api/v1/users/github/unbind');
       setGithubBound(false);
       setGithubUsername('');
       showSaveSuccess('github');
@@ -208,7 +204,7 @@ export default function SettingsPage() {
   const savePreferences = async () => {
     setSaving(true);
     try {
-      await client.api.put('/api/v1/users/preferences', {
+      await api.put('/api/v1/users/preferences', {
         preferences: prefs,
       });
       // Context already has the latest prefs from local updates,

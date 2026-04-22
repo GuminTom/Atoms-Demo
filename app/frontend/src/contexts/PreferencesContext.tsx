@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { client } from '../lib/api';
+import { api } from '../lib/api';
 
 export interface WorkspacePrefs {
   theme: string;
@@ -50,9 +50,9 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const loadPrefs = async () => {
       try {
-        const res = await client.api.get('/api/v1/users/preferences');
-        if (res?.data?.preferences) {
-          const loaded = { ...DEFAULT_PREFS, ...res.data.preferences };
+        const data = await api.get('/api/v1/users/preferences');
+        if (data?.preferences) {
+          const loaded = { ...DEFAULT_PREFS, ...data.preferences };
           setPrefs(loaded);
           applyTheme(loaded.theme);
         } else {

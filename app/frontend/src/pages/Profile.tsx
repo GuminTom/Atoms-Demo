@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { client } from '../lib/api';
+import { api } from '../lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -40,7 +40,7 @@ export default function Profile() {
     setSaving(true);
     setSaveSuccess(false);
     try {
-      await client.api.put('/api/v1/users/profile', { name: name.trim() });
+      await api.put('/api/v1/users/profile', { name: name.trim() });
       await refetch();
       setSaveSuccess(true);
       setEditing(false);
