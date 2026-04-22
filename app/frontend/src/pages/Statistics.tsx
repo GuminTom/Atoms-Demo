@@ -99,15 +99,15 @@ export default function Statistics() {
     return (
       <div className="p-6 max-w-5xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-zinc-50">Statistics</h1>
-          <p className="text-zinc-400 text-sm mt-1">Track your development activity and usage</p>
+          <h1 className="text-2xl font-bold text-foreground">Statistics</h1>
+          <p className="text-muted-foreground text-sm mt-1">Track your development activity and usage</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[1, 2, 3, 4].map(i => (
-            <Card key={i} className="bg-zinc-900 border-zinc-800 animate-pulse">
+            <Card key={i} className="bg-card border-border animate-pulse">
               <CardContent className="p-4">
-                <div className="h-4 bg-zinc-800 rounded w-1/2 mb-2" />
-                <div className="h-6 bg-zinc-800 rounded w-1/3" />
+                <div className="h-4 bg-muted rounded w-1/2 mb-2" />
+                <div className="h-6 bg-muted rounded w-1/3" />
               </CardContent>
             </Card>
           ))}
@@ -119,58 +119,58 @@ export default function Statistics() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-zinc-50">Statistics</h1>
-        <p className="text-zinc-400 text-sm mt-1">Track your development activity and usage</p>
+        <h1 className="text-2xl font-bold text-foreground">Statistics</h1>
+        <p className="text-muted-foreground text-sm mt-1">Track your development activity and usage</p>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <Code2 className="w-4 h-4 text-violet-400" />
-              <span className="text-xs text-zinc-500 uppercase tracking-wider">Apps</span>
+              <span className="text-xs text-muted-foreground uppercase tracking-wider">Apps</span>
             </div>
-            <p className="text-2xl font-bold text-zinc-50">{totalApps}</p>
-            <p className="text-[10px] text-zinc-600 mt-1">{draftApps} draft · {publishedApps} published</p>
+            <p className="text-2xl font-bold text-foreground">{totalApps}</p>
+            <p className="text-[10px] text-muted-foreground/70 mt-1">{draftApps} draft · {publishedApps} published</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <Rocket className="w-4 h-4 text-emerald-400" />
-              <span className="text-xs text-zinc-500 uppercase tracking-wider">Deploys</span>
+              <span className="text-xs text-muted-foreground uppercase tracking-wider">Deploys</span>
             </div>
-            <p className="text-2xl font-bold text-zinc-50">{totalDeploys}</p>
-            <p className="text-[10px] text-zinc-600 mt-1">{deployedCount} live · {failedCount} failed</p>
+            <p className="text-2xl font-bold text-foreground">{totalDeploys}</p>
+            <p className="text-[10px] text-muted-foreground/70 mt-1">{deployedCount} live · {failedCount} failed</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <Bot className="w-4 h-4 text-cyan-400" />
-              <span className="text-xs text-zinc-500 uppercase tracking-wider">Engineer</span>
+              <span className="text-xs text-muted-foreground uppercase tracking-wider">Engineer</span>
             </div>
-            <p className="text-2xl font-bold text-zinc-50">{engineerModeApps}</p>
-            <p className="text-[10px] text-zinc-600 mt-1">single-agent apps</p>
+            <p className="text-2xl font-bold text-foreground">{engineerModeApps}</p>
+            <p className="text-[10px] text-muted-foreground/70 mt-1">single-agent apps</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <Users className="w-4 h-4 text-amber-400" />
-              <span className="text-xs text-zinc-500 uppercase tracking-wider">Team</span>
+              <span className="text-xs text-muted-foreground uppercase tracking-wider">Team</span>
             </div>
-            <p className="text-2xl font-bold text-zinc-50">{teamModeApps}</p>
-            <p className="text-[10px] text-zinc-600 mt-1">multi-agent apps</p>
+            <p className="text-2xl font-bold text-foreground">{teamModeApps}</p>
+            <p className="text-[10px] text-muted-foreground/70 mt-1">multi-agent apps</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Weekly Activity Chart */}
-      <Card className="bg-zinc-900 border-zinc-800 mb-8">
+      <Card className="bg-card border-border mb-8">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+          <CardTitle className="text-sm font-semibold text-foreground/80 flex items-center gap-2">
             <Activity className="w-4 h-4 text-violet-400" />
             Weekly Activity
           </CardTitle>
@@ -191,19 +191,19 @@ export default function Statistics() {
                       style={{ height: `${(weeklyDeploys[i] / maxActivity) * 100}%`, minHeight: weeklyDeploys[i] > 0 ? '8px' : '2px' }}
                     />
                   </div>
-                  <span className="text-[10px] text-zinc-600">{dayLabel}</span>
+                  <span className="text-[10px] text-muted-foreground/70">{dayLabel}</span>
                 </div>
               );
             })}
           </div>
-          <div className="flex items-center gap-4 mt-4 pt-3 border-t border-zinc-800">
+          <div className="flex items-center gap-4 mt-4 pt-3 border-t border-border">
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-sm bg-violet-500" />
-              <span className="text-[10px] text-zinc-500">Apps Created</span>
+              <span className="text-[10px] text-muted-foreground">Apps Created</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />
-              <span className="text-[10px] text-zinc-500">Deployments</span>
+              <span className="text-[10px] text-muted-foreground">Deployments</span>
             </div>
           </div>
         </CardContent>
@@ -211,9 +211,9 @@ export default function Statistics() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Agent Mode Usage */}
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-card border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+            <CardTitle className="text-sm font-semibold text-foreground/80 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-emerald-400" />
               Agent Mode Usage
             </CardTitle>
@@ -222,12 +222,12 @@ export default function Statistics() {
             <div className="space-y-3">
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-zinc-400 flex items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1.5">
                     <Bot className="w-3 h-3 text-cyan-400" /> Engineer Mode
                   </span>
-                  <span className="text-xs text-zinc-300">{engineerModeApps} apps</span>
+                  <span className="text-xs text-foreground/80">{engineerModeApps} apps</span>
                 </div>
-                <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full transition-all duration-700"
                     style={{ width: `${totalApps > 0 ? (engineerModeApps / totalApps) * 100 : 50}%` }}
@@ -236,12 +236,12 @@ export default function Statistics() {
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-zinc-400 flex items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1.5">
                     <Users className="w-3 h-3 text-amber-400" /> Team Mode
                   </span>
-                  <span className="text-xs text-zinc-300">{teamModeApps} apps</span>
+                  <span className="text-xs text-foreground/80">{teamModeApps} apps</span>
                 </div>
-                <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all duration-700"
                     style={{ width: `${totalApps > 0 ? (teamModeApps / totalApps) * 100 : 50}%` }}
@@ -253,9 +253,9 @@ export default function Statistics() {
         </Card>
 
         {/* Quick Stats */}
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-card border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+            <CardTitle className="text-sm font-semibold text-foreground/80 flex items-center gap-2">
               <Zap className="w-4 h-4 text-violet-400" />
               Quick Stats
             </CardTitle>
@@ -266,14 +266,14 @@ export default function Statistics() {
                 { label: 'Success Rate', value: `${successRate}%`, icon: CheckCircle2, color: successRate >= 80 ? 'text-emerald-400' : 'text-amber-400' },
                 { label: 'Failed Deploys', value: `${failedCount}`, icon: XCircle, color: 'text-rose-400' },
                 { label: 'In Progress', value: `${deployments.filter(d => d.status === 'building' || d.status === 'pending').length}`, icon: Loader2, color: 'text-cyan-400' },
-                { label: 'Draft Apps', value: `${draftApps}`, icon: Clock, color: 'text-zinc-400' },
+                { label: 'Draft Apps', value: `${draftApps}`, icon: Clock, color: 'text-muted-foreground' },
               ].map((item, i) => (
-                <div key={i} className="flex items-center justify-between py-1.5 border-b border-zinc-800 last:border-0">
-                  <span className="text-xs text-zinc-400 flex items-center gap-1.5">
+                <div key={i} className="flex items-center justify-between py-1.5 border-b border-border last:border-0">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1.5">
                     <item.icon className={`w-3 h-3 ${item.color}`} />
                     {item.label}
                   </span>
-                  <span className="text-xs font-semibold text-zinc-200">{item.value}</span>
+                  <span className="text-xs font-semibold text-foreground">{item.value}</span>
                 </div>
               ))}
             </div>
@@ -283,9 +283,9 @@ export default function Statistics() {
 
       {/* Recent Deployment Activity */}
       {recentDeploys.length > 0 && (
-        <Card className="bg-zinc-900 border-zinc-800 mt-4">
+        <Card className="bg-card border-border mt-4">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+            <CardTitle className="text-sm font-semibold text-foreground/80 flex items-center gap-2">
               <Activity className="w-4 h-4 text-cyan-400" />
               Recent Deployments
             </CardTitle>
@@ -297,12 +297,12 @@ export default function Statistics() {
                 const statusColor = dep.status === 'deployed' ? 'text-emerald-400' : dep.status === 'failed' ? 'text-rose-400' : dep.status === 'building' ? 'text-cyan-400' : 'text-amber-400';
                 const Icon = statusIcon;
                 return (
-                  <div key={dep.id} className="flex items-center justify-between py-2 border-b border-zinc-800 last:border-0">
+                  <div key={dep.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                     <div className="flex items-center gap-2">
                       <Icon className={`w-3.5 h-3.5 ${statusColor} ${dep.status === 'building' ? 'animate-spin' : ''}`} />
-                      <span className="text-xs text-zinc-300">{dep.app_name || `App #${dep.app_id}`}</span>
+                      <span className="text-xs text-foreground/80">{dep.app_name || `App #${dep.app_id}`}</span>
                     </div>
-                    <span className="text-[10px] text-zinc-600">
+                    <span className="text-[10px] text-muted-foreground/70">
                       {dep.created_at ? new Date(dep.created_at).toLocaleString() : 'Just now'}
                     </span>
                   </div>

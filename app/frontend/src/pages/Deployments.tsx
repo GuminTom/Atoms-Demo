@@ -46,7 +46,7 @@ const statusConfig: Record<string, { icon: typeof Rocket; color: string; label: 
   building: { icon: Loader2, color: 'text-cyan-400', label: 'Building' },
   deployed: { icon: CheckCircle2, color: 'text-emerald-400', label: 'Deployed' },
   failed: { icon: XCircle, color: 'text-rose-400', label: 'Failed' },
-  stopped: { icon: StopCircle, color: 'text-zinc-400', label: 'Stopped' },
+  stopped: { icon: StopCircle, color: 'text-muted-foreground', label: 'Stopped' },
 };
 
 const statusBg: Record<string, string> = {
@@ -54,7 +54,7 @@ const statusBg: Record<string, string> = {
   building: 'bg-cyan-500/15',
   deployed: 'bg-emerald-500/15',
   failed: 'bg-rose-500/15',
-  stopped: 'bg-zinc-500/15',
+  stopped: 'bg-muted/30',
 };
 
 export default function Deployments() {
@@ -274,8 +274,8 @@ export default function Deployments() {
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-50">Deployments</h1>
-          <p className="text-zinc-400 text-sm mt-1">Monitor and manage your app deployments</p>
+          <h1 className="text-2xl font-bold text-foreground">Deployments</h1>
+          <p className="text-muted-foreground text-sm mt-1">Monitor and manage your app deployments</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -289,7 +289,7 @@ export default function Deployments() {
           <Button
             onClick={() => { fetchDeployments(); fetchApps(); }}
             variant="outline"
-            className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+            className="border-border text-foreground/80 hover:bg-muted"
           >
             <RefreshCw className="w-4 h-4" />
           </Button>
@@ -299,12 +299,12 @@ export default function Deployments() {
       {/* Deploy Modal */}
       {showDeployModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <Card className="bg-zinc-900 border-zinc-700 w-full max-w-md mx-4 shadow-2xl">
+          <Card className="bg-card border-border w-full max-w-md mx-4 shadow-2xl">
             <CardContent className="p-6">
-              <h2 className="text-lg font-semibold text-zinc-100 mb-4">Deploy App</h2>
-              <p className="text-zinc-400 text-sm mb-4">Select an app to deploy to production</p>
+              <h2 className="text-lg font-semibold text-foreground mb-4">Deploy App</h2>
+              <p className="text-muted-foreground text-sm mb-4">Select an app to deploy to production</p>
               {deployableApps.length === 0 ? (
-                <p className="text-zinc-500 text-sm py-4 text-center">No apps available for deployment</p>
+                <p className="text-muted-foreground text-sm py-4 text-center">No apps available for deployment</p>
               ) : (
                 <div className="space-y-2 max-h-60 overflow-y-auto mb-4">
                   {deployableApps.map((app) => (
@@ -314,15 +314,15 @@ export default function Deployments() {
                       className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-colors text-left ${
                         selectedApp === app.id
                           ? 'border-violet-500/50 bg-violet-500/10'
-                          : 'border-zinc-800 bg-zinc-800/50 hover:border-zinc-700'
+                          : 'border-border bg-muted/50 hover:border-border'
                       }`}
                     >
-                      <div className="w-8 h-8 rounded-lg bg-zinc-700 flex items-center justify-center text-sm">
+                      <div className="w-8 h-8 rounded-lg bg-muted/80 flex items-center justify-center text-sm">
                         📦
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-zinc-200">{app.name}</p>
-                        <p className="text-xs text-zinc-500">{app.status || 'draft'}</p>
+                        <p className="text-sm font-medium text-foreground">{app.name}</p>
+                        <p className="text-xs text-muted-foreground">{app.status || 'draft'}</p>
                       </div>
                       {selectedApp === app.id && (
                         <CheckCircle2 className="w-4 h-4 text-violet-400" />
@@ -338,7 +338,7 @@ export default function Deployments() {
                     setShowDeployModal(false);
                     setSelectedApp(null);
                   }}
-                  className="border-zinc-700 text-zinc-400 hover:text-zinc-200"
+                  className="border-border text-muted-foreground hover:text-foreground"
                 >
                   Cancel
                 </Button>
@@ -365,47 +365,47 @@ export default function Deployments() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-card border-border">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center">
               <CheckCircle2 className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-zinc-50">{deployed}</p>
-              <p className="text-xs text-zinc-500">Live</p>
+              <p className="text-2xl font-bold text-foreground">{deployed}</p>
+              <p className="text-xs text-muted-foreground">Live</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-card border-border">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center">
               <Loader2 className="w-5 h-5 text-cyan-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-zinc-50">{building}</p>
-              <p className="text-xs text-zinc-500">Building</p>
+              <p className="text-2xl font-bold text-foreground">{building}</p>
+              <p className="text-xs text-muted-foreground">Building</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-card border-border">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-rose-500/15 flex items-center justify-center">
               <XCircle className="w-5 h-5 text-rose-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-zinc-50">{failed}</p>
-              <p className="text-xs text-zinc-500">Failed</p>
+              <p className="text-2xl font-bold text-foreground">{failed}</p>
+              <p className="text-xs text-muted-foreground">Failed</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-card border-border">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-zinc-500/15 flex items-center justify-center">
-              <StopCircle className="w-5 h-5 text-zinc-400" />
+            <div className="w-10 h-10 rounded-xl bg-muted/30 flex items-center justify-center">
+              <StopCircle className="w-5 h-5 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-zinc-50">{stopped}</p>
-              <p className="text-xs text-zinc-500">Stopped</p>
+              <p className="text-2xl font-bold text-foreground">{stopped}</p>
+              <p className="text-xs text-muted-foreground">Stopped</p>
             </div>
           </CardContent>
         </Card>
@@ -415,22 +415,22 @@ export default function Deployments() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="bg-zinc-900 border-zinc-800 animate-pulse">
+            <Card key={i} className="bg-card border-border animate-pulse">
               <CardContent className="p-4">
-                <div className="h-4 bg-zinc-800 rounded w-1/3 mb-2" />
-                <div className="h-3 bg-zinc-800 rounded w-1/4" />
+                <div className="h-4 bg-muted rounded w-1/3 mb-2" />
+                <div className="h-3 bg-muted rounded w-1/4" />
               </CardContent>
             </Card>
           ))}
         </div>
       ) : deployments.length === 0 ? (
-        <Card className="bg-zinc-900 border-zinc-800 border-dashed">
+        <Card className="bg-card border-border border-dashed">
           <CardContent className="p-12 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-zinc-800 flex items-center justify-center mx-auto mb-4">
-              <Rocket className="w-7 h-7 text-zinc-500" />
+            <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+              <Rocket className="w-7 h-7 text-muted-foreground" />
             </div>
-            <h3 className="text-zinc-300 font-medium mb-2">No deployments yet</h3>
-            <p className="text-zinc-500 text-sm mb-4">Deploy your first app to see it here</p>
+            <h3 className="text-foreground/80 font-medium mb-2">No deployments yet</h3>
+            <p className="text-muted-foreground text-sm mb-4">Deploy your first app to see it here</p>
             <Button
               onClick={() => setShowDeployModal(true)}
               disabled={deployableApps.length === 0}
@@ -450,22 +450,22 @@ export default function Deployments() {
               const isActionLoading = actionLoading === dep.id;
 
               return (
-                <Card key={dep.id} className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors">
+                <Card key={dep.id} className="bg-card border-border hover:border-border transition-colors">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <div
-                          className={`w-10 h-10 rounded-xl ${statusBg[dep.status] || 'bg-zinc-500/15'} flex items-center justify-center`}
+                          className={`w-10 h-10 rounded-xl ${statusBg[dep.status] || 'bg-muted/30'} flex items-center justify-center`}
                         >
                           <Icon
                             className={`w-5 h-5 ${config.color} ${dep.status === 'building' ? 'animate-spin' : ''}`}
                           />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-zinc-200">
+                          <p className="text-sm font-semibold text-foreground">
                             {getAppName(dep.app_id)}
                           </p>
-                          <p className="text-xs text-zinc-500">
+                          <p className="text-xs text-muted-foreground">
                             Deploy #{dep.id} · {dep.version || 'v1'} · {dep.environment || 'production'}
                             {dep.created_at && ` · ${new Date(dep.created_at).toLocaleString()}`}
                           </p>
@@ -474,12 +474,12 @@ export default function Deployments() {
                       <div className="flex items-center gap-2">
                         <Badge
                           variant="secondary"
-                          className={`text-[10px] ${statusBg[dep.status] || 'bg-zinc-500/15'} ${config.color}`}
+                          className={`text-[10px] ${statusBg[dep.status] || 'bg-muted/30'} ${config.color}`}
                         >
                           {config.label}
                         </Badge>
                         {dep.status === 'deployed' && dep.url && (
-                          <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-zinc-200 h-7" asChild>
+                          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-7" asChild>
                             <a href={dep.url} target="_blank" rel="noopener noreferrer">
                               <Globe className="w-3.5 h-3.5 mr-1" />
                               Visit
@@ -513,7 +513,7 @@ export default function Deployments() {
                         )}
                         {dep.status === 'building' && (
                           <div className="flex items-center gap-2">
-                            <div className="w-20 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                            <div className="w-20 h-1.5 bg-muted rounded-full overflow-hidden">
                               <div className="h-full bg-gradient-to-r from-violet-500 to-cyan-500 rounded-full animate-pulse w-2/3" />
                             </div>
                             <span className="text-[10px] text-cyan-400">Building...</span>
@@ -522,7 +522,7 @@ export default function Deployments() {
                         {/* Expand logs */}
                         <button
                           onClick={() => setExpandedDep(isExpanded ? null : dep.id)}
-                          className="p-1 rounded hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 transition-colors"
+                          className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground/80 transition-colors"
                         >
                           {isExpanded ? (
                             <ChevronUp className="w-3.5 h-3.5" />
@@ -535,7 +535,7 @@ export default function Deployments() {
                           <button
                             onClick={() => handleDelete(dep.id)}
                             disabled={isActionLoading}
-                            className="p-1 rounded hover:bg-zinc-800 text-zinc-600 hover:text-rose-400 transition-colors disabled:opacity-50"
+                            className="p-1 rounded hover:bg-muted text-muted-foreground/70 hover:text-rose-400 transition-colors disabled:opacity-50"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -545,10 +545,10 @@ export default function Deployments() {
 
                     {/* Expanded logs */}
                     {isExpanded && (
-                      <div className="mt-3 pt-3 border-t border-zinc-800">
+                      <div className="mt-3 pt-3 border-t border-border">
                         {dep.url && (
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs text-zinc-500">URL:</span>
+                            <span className="text-xs text-muted-foreground">URL:</span>
                             <a
                               href={dep.url}
                               target="_blank"
@@ -560,11 +560,11 @@ export default function Deployments() {
                             </a>
                           </div>
                         )}
-                        <div className="bg-zinc-950 rounded-lg p-3 font-mono text-xs text-zinc-400 max-h-40 overflow-y-auto">
+                        <div className="bg-background rounded-lg p-3 font-mono text-xs text-muted-foreground max-h-40 overflow-y-auto">
                           {dep.logs ? (
                             dep.logs.split('\n').map((line, i) => (
                               <div key={i} className="flex">
-                                <span className="text-zinc-600 w-6 shrink-0 select-none">{i + 1}</span>
+                                <span className="text-muted-foreground/70 w-6 shrink-0 select-none">{i + 1}</span>
                                 <span
                                   className={
                                     line.startsWith('✓')
@@ -581,7 +581,7 @@ export default function Deployments() {
                               </div>
                             ))
                           ) : (
-                            <span className="text-zinc-600">No logs available</span>
+                            <span className="text-muted-foreground/70">No logs available</span>
                           )}
                         </div>
                       </div>

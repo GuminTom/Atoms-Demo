@@ -55,8 +55,8 @@ export default function Profile() {
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-zinc-50">Profile</h1>
-        <p className="text-zinc-400 text-sm mt-1">Manage your account settings and preferences</p>
+        <h1 className="text-2xl font-bold text-foreground">Profile</h1>
+        <p className="text-muted-foreground text-sm mt-1">Manage your account settings and preferences</p>
       </div>
 
       {/* Save success banner */}
@@ -68,11 +68,11 @@ export default function Profile() {
       )}
 
       {/* Profile Card */}
-      <Card className="bg-zinc-900 border-zinc-800 mb-6">
+      <Card className="bg-card border-border mb-6">
         <CardContent className="p-6">
           <div className="flex items-start gap-6">
-            <Avatar className="w-20 h-20 border-2 border-zinc-700">
-              <AvatarFallback className="bg-gradient-to-br from-violet-500/20 to-cyan-500/20 text-2xl font-bold text-zinc-200">
+            <Avatar className="w-20 h-20 border-2 border-border">
+              <AvatarFallback className="bg-gradient-to-br from-violet-500/20 to-cyan-500/20 text-2xl font-bold text-foreground">
                 {initials}
               </AvatarFallback>
             </Avatar>
@@ -82,23 +82,23 @@ export default function Profile() {
                   <Input
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    className="bg-zinc-800 border-zinc-700 text-zinc-100 max-w-xs"
+                    className="bg-muted border-border text-foreground max-w-xs"
                     onKeyDown={e => e.key === 'Enter' && handleSave()}
                     autoFocus
                   />
                 ) : (
-                  <h2 className="text-xl font-bold text-zinc-100">{user?.name || 'User'}</h2>
+                  <h2 className="text-xl font-bold text-foreground">{user?.name || 'User'}</h2>
                 )}
                 <Badge variant="secondary" className="bg-violet-500/15 text-violet-400 text-[10px]">
                   <Shield className="w-3 h-3 mr-1" />
                   Developer
                 </Badge>
               </div>
-              <p className="text-zinc-400 text-sm flex items-center gap-1.5 mb-3">
+              <p className="text-muted-foreground text-sm flex items-center gap-1.5 mb-3">
                 <Mail className="w-3.5 h-3.5" />
                 {email}
               </p>
-              <p className="text-zinc-500 text-xs flex items-center gap-1.5">
+              <p className="text-muted-foreground text-xs flex items-center gap-1.5">
                 <Calendar className="w-3 h-3" />
                 Member since {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </p>
@@ -122,7 +122,7 @@ export default function Profile() {
                       onClick={() => { setEditing(false); setName(user?.name || ''); }}
                       variant="outline"
                       size="sm"
-                      className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 rounded-xl"
+                      className="border-border text-foreground/80 hover:bg-muted rounded-xl"
                       disabled={saving}
                     >
                       <X className="w-3.5 h-3.5 mr-1" /> Cancel
@@ -133,7 +133,7 @@ export default function Profile() {
                     onClick={() => setEditing(true)}
                     variant="outline"
                     size="sm"
-                    className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 rounded-xl"
+                    className="border-border text-foreground/80 hover:bg-muted rounded-xl"
                   >
                     <Edit3 className="w-3.5 h-3.5 mr-1" /> Edit Profile
                   </Button>
@@ -147,9 +147,9 @@ export default function Profile() {
       {/* Settings Sections */}
       <div className="space-y-4">
         {/* Integrations */}
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-card border-border">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+            <CardTitle className="text-sm font-semibold text-foreground/80 flex items-center gap-2">
               <Key className="w-4 h-4 text-violet-400" />
               Integrations
             </CardTitle>
@@ -157,30 +157,30 @@ export default function Profile() {
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between py-2">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
-                  <Github className="w-4 h-4 text-zinc-300" />
+                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                  <Github className="w-4 h-4 text-foreground/80" />
                 </div>
                 <div>
-                  <p className="text-sm text-zinc-200">GitHub</p>
-                  <p className="text-xs text-zinc-500">Connect your repositories</p>
+                  <p className="text-sm text-foreground">GitHub</p>
+                  <p className="text-xs text-muted-foreground">Connect your repositories</p>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 rounded-xl text-xs">
+              <Button variant="outline" size="sm" className="border-border text-foreground/80 hover:bg-muted rounded-xl text-xs">
                 Connect
               </Button>
             </div>
-            <Separator className="bg-zinc-800" />
+            <Separator className="bg-muted" />
             <div className="flex items-center justify-between py-2">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
-                  <Key className="w-4 h-4 text-zinc-300" />
+                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                  <Key className="w-4 h-4 text-foreground/80" />
                 </div>
                 <div>
-                  <p className="text-sm text-zinc-200">API Keys</p>
-                  <p className="text-xs text-zinc-500">Manage your API access tokens</p>
+                  <p className="text-sm text-foreground">API Keys</p>
+                  <p className="text-xs text-muted-foreground">Manage your API access tokens</p>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 rounded-xl text-xs">
+              <Button variant="outline" size="sm" className="border-border text-foreground/80 hover:bg-muted rounded-xl text-xs">
                 Manage
               </Button>
             </div>
@@ -188,9 +188,9 @@ export default function Profile() {
         </Card>
 
         {/* Preferences */}
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-card border-border">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+            <CardTitle className="text-sm font-semibold text-foreground/80 flex items-center gap-2">
               <Palette className="w-4 h-4 text-cyan-400" />
               Preferences
             </CardTitle>
@@ -198,30 +198,30 @@ export default function Profile() {
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between py-2">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
-                  <Bell className="w-4 h-4 text-zinc-300" />
+                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                  <Bell className="w-4 h-4 text-foreground/80" />
                 </div>
                 <div>
-                  <p className="text-sm text-zinc-200">Notifications</p>
-                  <p className="text-xs text-zinc-500">Email and in-app notifications</p>
+                  <p className="text-sm text-foreground">Notifications</p>
+                  <p className="text-xs text-muted-foreground">Email and in-app notifications</p>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 rounded-xl text-xs">
+              <Button variant="outline" size="sm" className="border-border text-foreground/80 hover:bg-muted rounded-xl text-xs">
                 Configure
               </Button>
             </div>
-            <Separator className="bg-zinc-800" />
+            <Separator className="bg-muted" />
             <div className="flex items-center justify-between py-2">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
-                  <Palette className="w-4 h-4 text-zinc-300" />
+                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                  <Palette className="w-4 h-4 text-foreground/80" />
                 </div>
                 <div>
-                  <p className="text-sm text-zinc-200">Theme</p>
-                  <p className="text-xs text-zinc-500">Dark mode (default)</p>
+                  <p className="text-sm text-foreground">Theme</p>
+                  <p className="text-xs text-muted-foreground">Dark mode (default)</p>
                 </div>
               </div>
-              <Badge variant="secondary" className="bg-zinc-800 text-zinc-400 text-[10px]">
+              <Badge variant="secondary" className="bg-muted text-muted-foreground text-[10px]">
                 Dark
               </Badge>
             </div>
@@ -229,7 +229,7 @@ export default function Profile() {
         </Card>
 
         {/* Danger Zone */}
-        <Card className="bg-zinc-900 border-rose-500/20">
+        <Card className="bg-card border-rose-500/20">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold text-rose-400 flex items-center gap-2">
               <User className="w-4 h-4" />
@@ -239,8 +239,8 @@ export default function Profile() {
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-zinc-200">Sign Out</p>
-                <p className="text-xs text-zinc-500">End your current session</p>
+                <p className="text-sm text-foreground">Sign Out</p>
+                <p className="text-xs text-muted-foreground">End your current session</p>
               </div>
               <Button
                 onClick={logout}

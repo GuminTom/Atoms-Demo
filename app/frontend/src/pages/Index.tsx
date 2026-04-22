@@ -315,12 +315,12 @@ export default function Dashboard() {
 
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-zinc-950">
+      <div className="flex items-center justify-center h-screen bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center animate-pulse">
             <Zap className="w-5 h-5 text-white" />
           </div>
-          <p className="text-zinc-400 text-sm">Loading...</p>
+          <p className="text-muted-foreground text-sm">Loading...</p>
         </div>
       </div>
     );
@@ -328,7 +328,7 @@ export default function Dashboard() {
 
   if (!user && !demoMode) {
     return (
-      <div className="flex items-center justify-center h-screen bg-zinc-950 relative overflow-hidden">
+      <div className="flex items-center justify-center h-screen bg-background relative overflow-hidden">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-500/30 rounded-full blur-[128px]" />
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-[128px]" />
@@ -340,7 +340,7 @@ export default function Dashboard() {
           <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-violet-400 via-cyan-400 to-violet-400 bg-clip-text text-transparent">
             VibeCode
           </h1>
-          <p className="text-zinc-400 text-lg mb-8 leading-relaxed">
+          <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
             Multi-agent AI coding platform. Build, deploy, and ship applications with intelligent agents.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -356,7 +356,7 @@ export default function Dashboard() {
               onClick={() => setDemoMode(true)}
               size="lg"
               variant="outline"
-              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 px-8 h-12 rounded-xl"
+              className="border-border text-foreground/80 hover:bg-muted px-8 h-12 rounded-xl"
             >
               <Eye className="w-4 h-4 mr-2" />
               Preview Demo
@@ -368,7 +368,7 @@ export default function Dashboard() {
   }
 
   const statusColor: Record<string, string> = {
-    draft: 'bg-zinc-500/20 text-zinc-400',
+    draft: 'bg-muted/30 text-muted-foreground',
     published: 'bg-emerald-500/20 text-emerald-400',
     archived: 'bg-amber-500/20 text-amber-400',
   };
@@ -417,8 +417,8 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-50">Dashboard</h1>
-          <p className="text-zinc-400 text-sm mt-1">
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground text-sm mt-1">
             Welcome back, {user?.name || 'Developer'}
           </p>
         </div>
@@ -433,12 +433,12 @@ export default function Dashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <Card className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors">
+        <Card className="bg-card border-border hover:border-border transition-colors">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider">Total Apps</p>
-                <p className="text-2xl font-bold text-zinc-50 mt-1">{apps.length}</p>
+                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider">Total Apps</p>
+                <p className="text-2xl font-bold text-foreground mt-1">{apps.length}</p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center">
                 <Code2 className="w-5 h-5 text-violet-400" />
@@ -446,12 +446,12 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors">
+        <Card className="bg-card border-border hover:border-border transition-colors">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider">Deployed</p>
-                <p className="text-2xl font-bold text-zinc-50 mt-1">
+                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider">Deployed</p>
+                <p className="text-2xl font-bold text-foreground mt-1">
                   {apps.filter((a) => a.status === 'published').length}
                 </p>
               </div>
@@ -461,27 +461,27 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors">
+        <Card className="bg-card border-border hover:border-border transition-colors">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider">Drafts</p>
-                <p className="text-2xl font-bold text-zinc-50 mt-1">
+                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider">Drafts</p>
+                <p className="text-2xl font-bold text-foreground mt-1">
                   {apps.filter((a) => !a.status || a.status === 'draft').length}
                 </p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-zinc-500/15 flex items-center justify-center">
-                <Pencil className="w-5 h-5 text-zinc-400" />
+              <div className="w-10 h-10 rounded-xl bg-muted/30 flex items-center justify-center">
+                <Pencil className="w-5 h-5 text-muted-foreground" />
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors">
+        <Card className="bg-card border-border hover:border-border transition-colors">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider">Agent Mode</p>
-                <p className="text-2xl font-bold text-zinc-50 mt-1 flex items-center gap-2">
+                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider">Agent Mode</p>
+                <p className="text-2xl font-bold text-foreground mt-1 flex items-center gap-2">
                   <Bot className="w-5 h-5 text-cyan-400" />
                   <Users className="w-5 h-5 text-violet-400" />
                 </p>
@@ -497,25 +497,25 @@ export default function Dashboard() {
       {/* Search, Filter & Sort Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search apps..."
-            className="pl-9 bg-zinc-900 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 h-9"
+            className="pl-9 bg-card border-border text-foreground placeholder:text-muted-foreground/70 h-9"
           />
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {/* Status Filter */}
-          <div className="flex items-center gap-0.5 bg-zinc-900 border border-zinc-800 rounded-lg p-0.5">
+          <div className="flex items-center gap-0.5 bg-card border border-border rounded-lg p-0.5">
             {['all', 'draft', 'published', 'archived'].map((s) => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
                 className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
                   statusFilter === s
-                    ? 'bg-zinc-700 text-zinc-100'
-                    : 'text-zinc-500 hover:text-zinc-300'
+                    ? 'bg-muted/80 text-foreground'
+                    : 'text-muted-foreground hover:text-foreground/80'
                 }`}
               >
                 {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -525,13 +525,13 @@ export default function Dashboard() {
 
           {/* Type Filter */}
           {uniqueTypes.length > 1 && (
-            <div className="flex items-center gap-0.5 bg-zinc-900 border border-zinc-800 rounded-lg p-0.5">
+            <div className="flex items-center gap-0.5 bg-card border border-border rounded-lg p-0.5">
               <button
                 onClick={() => setTypeFilter('all')}
                 className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
                   typeFilter === 'all'
-                    ? 'bg-zinc-700 text-zinc-100'
-                    : 'text-zinc-500 hover:text-zinc-300'
+                    ? 'bg-muted/80 text-foreground'
+                    : 'text-muted-foreground hover:text-foreground/80'
                 }`}
               >
                 All Types
@@ -542,8 +542,8 @@ export default function Dashboard() {
                   onClick={() => setTypeFilter(t)}
                   className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
                     typeFilter === t
-                      ? 'bg-zinc-700 text-zinc-100'
-                      : 'text-zinc-500 hover:text-zinc-300'
+                      ? 'bg-muted/80 text-foreground'
+                      : 'text-muted-foreground hover:text-foreground/80'
                   }`}
                 >
                   {typeIcon[t] || '📦'} {t}
@@ -559,18 +559,18 @@ export default function Dashboard() {
               const next = modes[(modes.indexOf(sortMode) + 1) % modes.length];
               setSortMode(next);
             }}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-card border border-border rounded-lg text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowUpDown className="w-3 h-3" />
             {sortMode === 'updated' ? 'Updated' : sortMode === 'name' ? 'Name' : 'Created'}
           </button>
 
           {/* View Toggle */}
-          <div className="flex items-center gap-0.5 bg-zinc-900 border border-zinc-800 rounded-lg p-0.5">
+          <div className="flex items-center gap-0.5 bg-card border border-border rounded-lg p-0.5">
             <button
               onClick={() => setViewMode('grid')}
               className={`p-1.5 rounded-md transition-colors ${
-                viewMode === 'grid' ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'
+                viewMode === 'grid' ? 'bg-muted/80 text-foreground' : 'text-muted-foreground hover:text-foreground/80'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -578,7 +578,7 @@ export default function Dashboard() {
             <button
               onClick={() => setViewMode('list')}
               className={`p-1.5 rounded-md transition-colors ${
-                viewMode === 'list' ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'
+                viewMode === 'list' ? 'bg-muted/80 text-foreground' : 'text-muted-foreground hover:text-foreground/80'
               }`}
             >
               <List className="w-3.5 h-3.5" />
@@ -590,10 +590,10 @@ export default function Dashboard() {
       {/* Apps */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-zinc-200">
+          <h2 className="text-lg font-semibold text-foreground">
             Apps
             {filteredApps.length !== apps.length && (
-              <span className="text-zinc-500 text-sm font-normal ml-2">
+              <span className="text-muted-foreground text-sm font-normal ml-2">
                 {filteredApps.length} of {apps.length}
               </span>
             )}
@@ -603,25 +603,25 @@ export default function Dashboard() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <Card key={i} className="bg-zinc-900 border-zinc-800 animate-pulse">
+              <Card key={i} className="bg-card border-border animate-pulse">
                 <CardContent className="p-5">
-                  <div className="h-4 bg-zinc-800 rounded w-2/3 mb-3" />
-                  <div className="h-3 bg-zinc-800 rounded w-full mb-2" />
-                  <div className="h-3 bg-zinc-800 rounded w-1/2" />
+                  <div className="h-4 bg-muted rounded w-2/3 mb-3" />
+                  <div className="h-3 bg-muted rounded w-full mb-2" />
+                  <div className="h-3 bg-muted rounded w-1/2" />
                 </CardContent>
               </Card>
             ))}
           </div>
         ) : filteredApps.length === 0 ? (
-          <Card className="bg-zinc-900 border-zinc-800 border-dashed">
+          <Card className="bg-card border-border border-dashed">
             <CardContent className="p-12 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-zinc-800 flex items-center justify-center mx-auto mb-4">
-                <Code2 className="w-7 h-7 text-zinc-500" />
+              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+                <Code2 className="w-7 h-7 text-muted-foreground" />
               </div>
-              <h3 className="text-zinc-300 font-medium mb-2">
+              <h3 className="text-foreground/80 font-medium mb-2">
                 {searchQuery || statusFilter !== 'all' ? 'No matching apps' : 'No apps yet'}
               </h3>
-              <p className="text-zinc-500 text-sm mb-4">
+              <p className="text-muted-foreground text-sm mb-4">
                 {searchQuery || statusFilter !== 'all'
                   ? 'Try adjusting your search or filters'
                   : 'Create your first app to get started'}
@@ -642,7 +642,7 @@ export default function Dashboard() {
             {filteredApps.map((app) => (
               <Card
                 key={app.id}
-                className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-all duration-200 cursor-pointer group relative"
+                className="bg-card border-border hover:border-border transition-all duration-200 cursor-pointer group relative"
                 onClick={() => {
                   if (editingApp !== app.id && deleteConfirm !== app.id) {
                     navigate(`/workspace/${app.id}`);
@@ -655,14 +655,14 @@ export default function Dashboard() {
                       <Input
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
-                        className="bg-zinc-800 border-zinc-700 text-zinc-100 text-sm"
+                        className="bg-muted border-border text-foreground text-sm"
                         placeholder="App name"
                         autoFocus
                       />
                       <Input
                         value={editDesc}
                         onChange={(e) => setEditDesc(e.target.value)}
-                        className="bg-zinc-800 border-zinc-700 text-zinc-100 text-sm"
+                        className="bg-muted border-border text-foreground text-sm"
                         placeholder="Description"
                       />
                       <div className="flex gap-2">
@@ -677,7 +677,7 @@ export default function Dashboard() {
                           size="sm"
                           variant="outline"
                           onClick={() => setEditingApp(null)}
-                          className="border-zinc-700 text-zinc-400 hover:text-zinc-200 text-xs rounded-lg"
+                          className="border-border text-muted-foreground hover:text-foreground text-xs rounded-lg"
                         >
                           <X className="w-3 h-3 mr-1" /> Cancel
                         </Button>
@@ -686,7 +686,7 @@ export default function Dashboard() {
                   ) : deleteConfirm === app.id ? (
                     <div onClick={(e) => e.stopPropagation()}>
                       <p className="text-sm text-rose-400 font-medium mb-3">Delete &quot;{app.name}&quot;?</p>
-                      <p className="text-xs text-zinc-500 mb-3">This action cannot be undone.</p>
+                      <p className="text-xs text-muted-foreground mb-3">This action cannot be undone.</p>
                       <div className="flex gap-2">
                         <Button
                           size="sm"
@@ -702,7 +702,7 @@ export default function Dashboard() {
                             setDeleteConfirm(null);
                             setMenuOpen(null);
                           }}
-                          className="border-zinc-700 text-zinc-400 hover:text-zinc-200 text-xs rounded-lg"
+                          className="border-border text-muted-foreground hover:text-foreground text-xs rounded-lg"
                         >
                           Cancel
                         </Button>
@@ -713,7 +713,7 @@ export default function Dashboard() {
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">{typeIcon[app.type || 'react'] || '📦'}</span>
-                          <h3 className="font-semibold text-zinc-100 group-hover:text-violet-300 transition-colors">
+                          <h3 className="font-semibold text-foreground group-hover:text-violet-300 transition-colors">
                             {app.name}
                           </h3>
                         </div>
@@ -730,18 +730,18 @@ export default function Dashboard() {
                                 e.stopPropagation();
                                 setMenuOpen(menuOpen === app.id ? null : app.id);
                               }}
-                              className="p-1 rounded hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 opacity-0 group-hover:opacity-100 transition-all"
+                              className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground/80 opacity-0 group-hover:opacity-100 transition-all"
                             >
                               <MoreVertical className="w-3.5 h-3.5" />
                             </button>
                             {menuOpen === app.id && (
                               <div
-                                className="absolute right-0 top-8 z-20 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl py-1 min-w-[140px]"
+                                className="absolute right-0 top-8 z-20 bg-muted border border-border rounded-lg shadow-xl py-1 min-w-[140px]"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <button
                                   onClick={() => handleEdit(app)}
-                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700 transition-colors"
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-foreground/80 hover:bg-muted/80 transition-colors"
                                 >
                                   <Pencil className="w-3 h-3" /> Edit Details
                                 </button>
@@ -749,7 +749,7 @@ export default function Dashboard() {
                                   <button
                                     key={action.status}
                                     onClick={() => handleStatusChange(app.id, action.status)}
-                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700 transition-colors"
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-foreground/80 hover:bg-muted/80 transition-colors"
                                   >
                                     <action.icon className="w-3 h-3" /> {action.label}
                                   </button>
@@ -758,19 +758,19 @@ export default function Dashboard() {
                                   <button
                                     onClick={() => handleDeploy(app)}
                                     disabled={deployingApp === app.id}
-                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-emerald-400 hover:bg-zinc-700 transition-colors disabled:opacity-50"
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-emerald-400 hover:bg-muted/80 transition-colors disabled:opacity-50"
                                   >
                                     <RocketIcon className="w-3 h-3" />
                                     {deployingApp === app.id ? 'Deploying...' : 'Quick Deploy'}
                                   </button>
                                 )}
-                                <div className="border-t border-zinc-700 my-1" />
+                                <div className="border-t border-border my-1" />
                                 <button
                                   onClick={() => {
                                     setDeleteConfirm(app.id);
                                     setMenuOpen(null);
                                   }}
-                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-400 hover:bg-zinc-700 transition-colors"
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-400 hover:bg-muted/80 transition-colors"
                                 >
                                   <Trash2 className="w-3 h-3" /> Delete
                                 </button>
@@ -779,10 +779,10 @@ export default function Dashboard() {
                           </div>
                         </div>
                       </div>
-                      <p className="text-zinc-500 text-sm line-clamp-2 mb-3">
+                      <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
                         {app.description || 'No description'}
                       </p>
-                      <div className="flex items-center justify-between text-xs text-zinc-600">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground/70">
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {app.updated_at ? new Date(app.updated_at).toLocaleDateString() : 'Just now'}
@@ -801,7 +801,7 @@ export default function Dashboard() {
                       </div>
                       {deployingApp === app.id && (
                         <div className="mt-3 flex items-center gap-2">
-                          <div className="h-1 flex-1 bg-zinc-800 rounded-full overflow-hidden">
+                          <div className="h-1 flex-1 bg-muted rounded-full overflow-hidden">
                             <div className="h-full bg-gradient-to-r from-violet-500 to-cyan-500 rounded-full animate-pulse w-2/3" />
                           </div>
                           <span className="text-[10px] text-cyan-400">Deploying...</span>
@@ -818,7 +818,7 @@ export default function Dashboard() {
             {filteredApps.map((app) => (
               <Card
                 key={app.id}
-                className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-all duration-200 cursor-pointer group"
+                className="bg-card border-border hover:border-border transition-all duration-200 cursor-pointer group"
                 onClick={() => {
                   if (editingApp !== app.id && deleteConfirm !== app.id) {
                     navigate(`/workspace/${app.id}`);
@@ -831,14 +831,14 @@ export default function Dashboard() {
                       <Input
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
-                        className="bg-zinc-800 border-zinc-700 text-zinc-100 text-sm max-w-[200px]"
+                        className="bg-muted border-border text-foreground text-sm max-w-[200px]"
                         placeholder="App name"
                         autoFocus
                       />
                       <Input
                         value={editDesc}
                         onChange={(e) => setEditDesc(e.target.value)}
-                        className="bg-zinc-800 border-zinc-700 text-zinc-100 text-sm flex-1"
+                        className="bg-muted border-border text-foreground text-sm flex-1"
                         placeholder="Description"
                       />
                       <Button
@@ -852,7 +852,7 @@ export default function Dashboard() {
                         size="sm"
                         variant="outline"
                         onClick={() => setEditingApp(null)}
-                        className="border-zinc-700 text-zinc-400 hover:text-zinc-200 text-xs rounded-lg shrink-0"
+                        className="border-border text-muted-foreground hover:text-foreground text-xs rounded-lg shrink-0"
                       >
                         <X className="w-3 h-3 mr-1" /> Cancel
                       </Button>
@@ -862,10 +862,10 @@ export default function Dashboard() {
                       <div className="flex items-center gap-4">
                         <span className="text-lg">{typeIcon[app.type || 'react'] || '📦'}</span>
                         <div>
-                          <p className="text-sm font-semibold text-zinc-200 group-hover:text-violet-300 transition-colors">
+                          <p className="text-sm font-semibold text-foreground group-hover:text-violet-300 transition-colors">
                             {app.name}
                           </p>
-                          <p className="text-xs text-zinc-500 line-clamp-1">
+                          <p className="text-xs text-muted-foreground line-clamp-1">
                             {app.description || 'No description'}
                           </p>
                         </div>
@@ -877,7 +877,7 @@ export default function Dashboard() {
                         >
                           {app.status || 'draft'}
                         </Badge>
-                        <span className="text-xs text-zinc-600 flex items-center gap-1">
+                        <span className="text-xs text-muted-foreground/70 flex items-center gap-1">
                           {app.agent_mode === 'team' ? (
                             <>
                               <Users className="w-3 h-3" /> Team
@@ -888,7 +888,7 @@ export default function Dashboard() {
                             </>
                           )}
                         </span>
-                        <span className="text-xs text-zinc-600 flex items-center gap-1">
+                        <span className="text-xs text-muted-foreground/70 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {app.updated_at ? new Date(app.updated_at).toLocaleDateString() : 'Just now'}
                         </span>
@@ -898,15 +898,15 @@ export default function Dashboard() {
                               e.stopPropagation();
                               setMenuOpen(menuOpen === app.id ? null : app.id);
                             }}
-                            className="p-1 rounded hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 opacity-0 group-hover:opacity-100 transition-all"
+                            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground/80 opacity-0 group-hover:opacity-100 transition-all"
                           >
                             <MoreVertical className="w-3.5 h-3.5" />
                           </button>
                           {menuOpen === app.id && (
-                            <div className="absolute right-0 top-8 z-20 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl py-1 min-w-[140px]">
+                            <div className="absolute right-0 top-8 z-20 bg-muted border border-border rounded-lg shadow-xl py-1 min-w-[140px]">
                               <button
                                 onClick={() => handleEdit(app)}
-                                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700 transition-colors"
+                                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-foreground/80 hover:bg-muted/80 transition-colors"
                               >
                                 <Pencil className="w-3 h-3" /> Edit Details
                               </button>
@@ -914,7 +914,7 @@ export default function Dashboard() {
                                 <button
                                   key={action.status}
                                   onClick={() => handleStatusChange(app.id, action.status)}
-                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700 transition-colors"
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-foreground/80 hover:bg-muted/80 transition-colors"
                                 >
                                   <action.icon className="w-3 h-3" /> {action.label}
                                 </button>
@@ -923,19 +923,19 @@ export default function Dashboard() {
                                 <button
                                   onClick={() => handleDeploy(app)}
                                   disabled={deployingApp === app.id}
-                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-emerald-400 hover:bg-zinc-700 transition-colors disabled:opacity-50"
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-emerald-400 hover:bg-muted/80 transition-colors disabled:opacity-50"
                                 >
                                   <RocketIcon className="w-3 h-3" />
                                   {deployingApp === app.id ? 'Deploying...' : 'Quick Deploy'}
                                 </button>
                               )}
-                              <div className="border-t border-zinc-700 my-1" />
+                              <div className="border-t border-border my-1" />
                               <button
                                 onClick={() => {
                                   setDeleteConfirm(app.id);
                                   setMenuOpen(null);
                                 }}
-                                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-400 hover:bg-zinc-700 transition-colors"
+                                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-400 hover:bg-muted/80 transition-colors"
                               >
                                 <Trash2 className="w-3 h-3" /> Delete
                               </button>
@@ -954,10 +954,10 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <div>
-        <h2 className="text-lg font-semibold text-zinc-200 mb-4">Quick Actions</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card
-            className="bg-zinc-900 border-zinc-800 hover:border-violet-500/50 transition-all cursor-pointer group"
+            className="bg-card border-border hover:border-violet-500/50 transition-all cursor-pointer group"
             onClick={() => navigate('/workspace')}
           >
             <CardContent className="p-5 flex items-center gap-4">
@@ -965,13 +965,13 @@ export default function Dashboard() {
                 <Bot className="w-6 h-6 text-violet-400" />
               </div>
               <div>
-                <h3 className="font-semibold text-zinc-100">Engineer Mode</h3>
-                <p className="text-zinc-500 text-sm">Single agent for focused coding tasks</p>
+                <h3 className="font-semibold text-foreground">Engineer Mode</h3>
+                <p className="text-muted-foreground text-sm">Single agent for focused coding tasks</p>
               </div>
             </CardContent>
           </Card>
           <Card
-            className="bg-zinc-900 border-zinc-800 hover:border-cyan-500/50 transition-all cursor-pointer group"
+            className="bg-card border-border hover:border-cyan-500/50 transition-all cursor-pointer group"
             onClick={() => navigate('/workspace')}
           >
             <CardContent className="p-5 flex items-center gap-4">
@@ -979,8 +979,8 @@ export default function Dashboard() {
                 <Users className="w-6 h-6 text-cyan-400" />
               </div>
               <div>
-                <h3 className="font-semibold text-zinc-100">Team Mode</h3>
-                <p className="text-zinc-500 text-sm">Multi-agent collaboration for complex projects</p>
+                <h3 className="font-semibold text-foreground">Team Mode</h3>
+                <p className="text-muted-foreground text-sm">Multi-agent collaboration for complex projects</p>
               </div>
             </CardContent>
           </Card>
