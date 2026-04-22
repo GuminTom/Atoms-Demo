@@ -713,6 +713,15 @@ export default function Workspace() {
         {/* Top Bar */}
         <div className="h-12 border-b border-border flex items-center justify-between px-4 bg-background">
           <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted -ml-2"
+              onClick={() => navigate('/')}
+              title="Back to home"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
             <h2 className="text-sm font-semibold text-foreground">{appName}</h2>
             <Badge
               variant="secondary"

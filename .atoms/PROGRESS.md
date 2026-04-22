@@ -20,4 +20,5 @@ last_updated: 2026-04-22T12:52:54Z
 - 2026-04-22: Lint and build pass, UI rendering verified
 - 2026-04-22: Verified all password validation fixes — frontend byte-length check, backend schema truncation, auth service _prepare_password() all consistent; lint and build pass
 - 2026-04-22: Fixed "Create & Start Coding" failure — root cause was web-sdk not forwarding Authorization headers, causing 401 on authenticated endpoints. Replaced api helper with native fetch that reliably attaches Bearer token; added error UI and loading state on Create App dialog. Lint and build pass.
+- 2026-04-22: Added back arrow button to Workspace project page top bar — users can now click it to return to the home page. Lint and build pass.
 
