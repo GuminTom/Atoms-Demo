@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { client } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
+import { usePreferences } from '../contexts/PreferencesContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
@@ -87,6 +88,7 @@ export default function Workspace() {
   const { appId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { prefs } = usePreferences();
   const [mode, setMode] = useState<'engineer' | 'team'>('engineer');
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -123,18 +125,18 @@ export default function Workspace() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Auto-save messages when they change
+  // Auto-save messages when they change (only when auto_save preference is enabled)
   useEffect(() => {
-    if (messages.length > 0 && appId && currentSession) {
+    if (prefs.auto_save && messages.length > 0 && appId && currentSession) {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
       autoSaveTimerRef.current = setTimeout(() => {
         persistMessages(messages);
-      }, 2000);
+      }, prefs.auto_save_delay);
     }
     return () => {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     };
-  }, [messages, appId, currentSession]);
+  }, [messages, appId, currentSession, prefs.auto_save, prefs.auto_save_delay]);
 
   const loadApp = async () => {
     try {
@@ -898,11 +900,12 @@ export default function Workspace() {
                   <textarea
                     value={activeFileContent}
                     onChange={e => setActiveFileContent(e.target.value)}
-                    className="w-full h-[calc(100vh-200px)] bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs font-mono text-zinc-200 resize-none focus:outline-none focus:border-violet-500"
+                    className="w-full h-[calc(100vh-200px)] bg-zinc-900 border border-zinc-800 rounded-lg p-3 font-mono text-zinc-200 resize-none focus:outline-none focus:border-violet-500"
+                    style={{ fontSize: prefs.font_size, tabSize: prefs.tab_size, whiteSpace: prefs.word_wrap ? 'pre-wrap' : 'pre' }}
                     spellCheck={false}
                   />
                 ) : (
-                  <pre className="w-full h-[calc(100vh-200px)] bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs font-mono text-zinc-400 overflow-auto whitespace-pre-wrap">
+                  <pre className="w-full h-[calc(100vh-200px)] bg-zinc-900 border border-zinc-800 rounded-lg p-3 font-mono text-zinc-400 overflow-auto" style={{ fontSize: prefs.font_size, tabSize: prefs.tab_size, whiteSpace: prefs.word_wrap ? 'pre-wrap' : 'pre' }}>
                     {activeFileContent || '// Empty file'}
                   </pre>
                 )}

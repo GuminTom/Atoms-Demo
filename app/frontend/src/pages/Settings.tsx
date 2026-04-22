@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { usePreferences } from '../contexts/PreferencesContext';
 import { client } from '../lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -48,26 +49,9 @@ interface ApiKeyEntry {
   is_set: boolean;
 }
 
-interface WorkspacePrefs {
-  theme: string;
-  font_size: number;
-  tab_size: number;
-  word_wrap: boolean;
-  auto_save: boolean;
-  auto_save_delay: number;
-}
-
-const DEFAULT_PREFS: WorkspacePrefs = {
-  theme: 'dark',
-  font_size: 14,
-  tab_size: 2,
-  word_wrap: true,
-  auto_save: true,
-  auto_save_delay: 2000,
-};
-
 export default function SettingsPage() {
   const { user } = useAuth();
+  const { prefs, updatePrefs } = usePreferences();
   const [activeTab, setActiveTab] = useState('model');
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
@@ -92,9 +76,6 @@ export default function SettingsPage() {
   const [githubUsername, setGithubUsername] = useState('');
   const [githubLoading, setGithubLoading] = useState(false);
 
-  // Preferences
-  const [prefs, setPrefs] = useState<WorkspacePrefs>(DEFAULT_PREFS);
-
   useEffect(() => {
     loadSettings();
   }, [user]);
@@ -116,8 +97,10 @@ export default function SettingsPage() {
         if (data.api_keys) {
           setApiKeys(data.api_keys);
         }
+        // Preferences are loaded by PreferencesContext on mount,
+        // but we sync here too in case context loaded before this component
         if (data.preferences) {
-          setPrefs({ ...DEFAULT_PREFS, ...data.preferences });
+          updatePrefs(data.preferences);
         }
       }
     } catch {
@@ -228,6 +211,9 @@ export default function SettingsPage() {
       await client.api.put('/api/v1/users/preferences', {
         preferences: prefs,
       });
+      // Context already has the latest prefs from local updates,
+      // but we ensure sync after successful save
+      updatePrefs(prefs);
       showSaveSuccess('preferences');
     } catch {
       // Handle error
@@ -575,7 +561,7 @@ export default function SettingsPage() {
                     ].map(theme => (
                       <button
                         key={theme.id}
-                        onClick={() => setPrefs(p => ({ ...p, theme: theme.id }))}
+                        onClick={() => updatePrefs({ theme: theme.id })}
                         className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-all ${
                           prefs.theme === theme.id
                             ? 'border-violet-500/50 bg-violet-500/10'
@@ -610,7 +596,7 @@ export default function SettingsPage() {
                           min={10}
                           max={24}
                           value={prefs.font_size}
-                          onChange={e => setPrefs(p => ({ ...p, font_size: parseInt(e.target.value) }))}
+                          onChange={e => updatePrefs({ font_size: parseInt(e.target.value) })}
                           className="flex-1 accent-violet-500"
                         />
                         <span className="text-xs text-zinc-300 w-8 text-right">{prefs.font_size}px</span>
@@ -622,7 +608,7 @@ export default function SettingsPage() {
                         {[2, 4, 8].map(size => (
                           <button
                             key={size}
-                            onClick={() => setPrefs(p => ({ ...p, tab_size: size }))}
+                            onClick={() => updatePrefs({ tab_size: size })}
                             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                               prefs.tab_size === size
                                 ? 'bg-violet-500/20 text-violet-400 border border-violet-500/50'
@@ -642,7 +628,7 @@ export default function SettingsPage() {
                       <p className="text-xs text-zinc-500">Wrap long lines in the editor</p>
                     </div>
                     <button
-                      onClick={() => setPrefs(p => ({ ...p, word_wrap: !p.word_wrap }))}
+                      onClick={() => updatePrefs({ word_wrap: !prefs.word_wrap })}
                       className={`w-10 h-5 rounded-full transition-colors ${
                         prefs.word_wrap ? 'bg-violet-500' : 'bg-zinc-700'
                       }`}
@@ -670,7 +656,7 @@ export default function SettingsPage() {
                       <p className="text-xs text-zinc-500">Automatically save file changes</p>
                     </div>
                     <button
-                      onClick={() => setPrefs(p => ({ ...p, auto_save: !p.auto_save }))}
+                      onClick={() => updatePrefs({ auto_save: !prefs.auto_save })}
                       className={`w-10 h-5 rounded-full transition-colors ${
                         prefs.auto_save ? 'bg-emerald-500' : 'bg-zinc-700'
                       }`}
@@ -691,7 +677,7 @@ export default function SettingsPage() {
                           max={10000}
                           step={500}
                           value={prefs.auto_save_delay}
-                          onChange={e => setPrefs(p => ({ ...p, auto_save_delay: parseInt(e.target.value) }))}
+                          onChange={e => updatePrefs({ auto_save_delay: parseInt(e.target.value) })}
                           className="flex-1 accent-emerald-500"
                         />
                         <span className="text-xs text-zinc-300 w-14 text-right">{(prefs.auto_save_delay / 1000).toFixed(1)}s</span>
