@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional, Tuple
 
@@ -8,8 +9,15 @@ from core.auth import create_access_token
 from core.config import settings
 from core.database import db_manager
 from models.auth import OIDCState, User
+from models.local_auth import LocalUser
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+try:
+    from passlib.context import CryptContext
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+except ImportError:
+    pwd_context = None
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +77,116 @@ class AuthService:
         token = create_access_token(claims, expires_minutes=expires_minutes)
 
         return token, expires_at, claims
+
+    async def register_local_user(
+        self, username: str, email: str, password: str, name: Optional[str] = None
+    ) -> Tuple[LocalUser, str]:
+        """Register a new local user with username and password."""
+        if pwd_context is None:
+            raise RuntimeError("passlib is not installed. Run: pip install passlib[bcrypt]")
+
+        # Check if username already exists
+        result = await self.db.execute(select(LocalUser).where(LocalUser.username == username))
+        if result.scalar_one_or_none():
+            raise ValueError("Username already exists")
+
+        # Check if email already exists
+        result = await self.db.execute(select(LocalUser).where(LocalUser.email == email))
+        if result.scalar_one_or_none():
+            raise ValueError("Email already exists")
+
+        # Create local user
+        hashed_password = pwd_context.hash(password)
+        local_user = LocalUser(
+            id=str(uuid.uuid4()),
+            username=username,
+            email=email,
+            hashed_password=hashed_password,
+            name=name or username,
+            role="user",
+        )
+        self.db.add(local_user)
+
+        # Also create a corresponding User record for app compatibility
+        result = await self.db.execute(select(User).where(User.id == local_user.id))
+        app_user = result.scalar_one_or_none()
+        if not app_user:
+            app_user = User(
+                id=local_user.id,
+                email=email,
+                name=name or username,
+                role="user",
+                last_login=datetime.now(timezone.utc),
+            )
+            self.db.add(app_user)
+
+        await self.db.commit()
+        await self.db.refresh(local_user)
+
+        # Issue token
+        claims: Dict[str, Any] = {
+            "sub": local_user.id,
+            "email": local_user.email,
+            "name": local_user.name,
+            "role": local_user.role,
+            "username": local_user.username,
+            "auth_type": "local",
+        }
+        try:
+            expires_minutes = int(getattr(settings, "jwt_expire_minutes", 60))
+        except (TypeError, ValueError):
+            expires_minutes = 60
+        token = create_access_token(claims, expires_minutes=expires_minutes)
+
+        return local_user, token
+
+    async def login_local_user(self, username: str, password: str) -> Tuple[LocalUser, str]:
+        """Authenticate a local user with username/email and password."""
+        if pwd_context is None:
+            raise RuntimeError("passlib is not installed. Run: pip install passlib[bcrypt]")
+
+        # Try to find by username first, then by email
+        result = await self.db.execute(select(LocalUser).where(LocalUser.username == username))
+        local_user = result.scalar_one_or_none()
+
+        if not local_user:
+            result = await self.db.execute(select(LocalUser).where(LocalUser.email == username))
+            local_user = result.scalar_one_or_none()
+
+        if not local_user:
+            raise ValueError("Invalid username or password")
+
+        if not pwd_context.verify(password, local_user.hashed_password):
+            raise ValueError("Invalid username or password")
+
+        # Update last login
+        local_user.last_login = datetime.now(timezone.utc)
+
+        # Also update the app User record
+        result = await self.db.execute(select(User).where(User.id == local_user.id))
+        app_user = result.scalar_one_or_none()
+        if app_user:
+            app_user.last_login = datetime.now(timezone.utc)
+
+        await self.db.commit()
+        await self.db.refresh(local_user)
+
+        # Issue token
+        claims: Dict[str, Any] = {
+            "sub": local_user.id,
+            "email": local_user.email,
+            "name": local_user.name,
+            "role": local_user.role,
+            "username": local_user.username,
+            "auth_type": "local",
+        }
+        try:
+            expires_minutes = int(getattr(settings, "jwt_expire_minutes", 60))
+        except (TypeError, ValueError):
+            expires_minutes = 60
+        token = create_access_token(claims, expires_minutes=expires_minutes)
+
+        return local_user, token
 
     async def store_oidc_state(self, state: str, nonce: str, code_verifier: str):
         """Store OIDC state in database."""

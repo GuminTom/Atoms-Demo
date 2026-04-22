@@ -9,6 +9,8 @@ import Deployments from './pages/Deployments';
 import Statistics from './pages/Statistics';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
+import Login from './pages/Login';
+import Register from './pages/Register';
 
 const queryClient = new QueryClient();
 
@@ -19,6 +21,8 @@ function App() {
         <PreferencesProvider>
         <BrowserRouter>
           <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route
               path="/"
               element={
