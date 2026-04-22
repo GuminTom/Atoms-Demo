@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, type KeyboardEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { client } from '../lib/api';
+import { api, client } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { usePreferences } from '../contexts/PreferencesContext';
 import { Button } from '../components/ui/button';
@@ -84,6 +84,30 @@ function getLanguage(path: string): string {
   return langMap[ext] || ext;
 }
 
+function buildEntityQueryUrl(
+  basePath: string,
+  queryDict?: Record<string, unknown>,
+  options?: { limit?: number; sort?: string; skip?: number }
+): string {
+  const params = new URLSearchParams();
+
+  if (queryDict && Object.keys(queryDict).length > 0) {
+    params.set('query', JSON.stringify(queryDict));
+  }
+  if (typeof options?.limit === 'number') {
+    params.set('limit', String(options.limit));
+  }
+  if (typeof options?.skip === 'number') {
+    params.set('skip', String(options.skip));
+  }
+  if (options?.sort) {
+    params.set('sort', options.sort);
+  }
+
+  const query = params.toString();
+  return query ? `${basePath}?${query}` : basePath;
+}
+
 export default function Workspace() {
   const { appId } = useParams();
   const navigate = useNavigate();
@@ -140,10 +164,10 @@ export default function Workspace() {
 
   const loadApp = async () => {
     try {
-      const res = await client.entities.apps.get({ id: appId! });
-      if (res?.data) {
-        setAppName(res.data.name || 'Untitled');
-        setMode((res.data.agent_mode as 'engineer' | 'team') || 'engineer');
+      const res = await api.get(`/api/v1/entities/apps/${appId!}`);
+      if (res) {
+        setAppName(res.name || 'Untitled');
+        setMode((res.agent_mode as 'engineer' | 'team') || 'engineer');
       }
     } catch {
       // App not found
@@ -153,12 +177,14 @@ export default function Workspace() {
   const loadFiles = useCallback(async () => {
     if (!appId) return;
     try {
-      const res = await client.entities.app_files.query({
-        app_id: Number(appId),
-        limit: 100,
-        sort: 'path',
-      });
-      const items = res?.data?.items || [];
+      const res = await api.get(
+        buildEntityQueryUrl(
+          '/api/v1/entities/app_files',
+          { app_id: Number(appId) },
+          { limit: 100, sort: 'path' }
+        )
+      );
+      const items = res?.items || [];
       setFiles(items);
       if (items.length > 0 && !activeFile) {
         setActiveFile(items[0].path);
@@ -172,12 +198,14 @@ export default function Workspace() {
   const loadSessions = async () => {
     if (!appId) return;
     try {
-      const res = await client.entities.agent_sessions.query({
-        app_id: Number(appId),
-        limit: 50,
-        sort: '-created_at',
-      });
-      const items = res?.data?.items || [];
+      const res = await api.get(
+        buildEntityQueryUrl(
+          '/api/v1/entities/agent_sessions',
+          { app_id: Number(appId) },
+          { limit: 50, sort: '-id' }
+        )
+      );
+      const items = res?.items || [];
       setSessions(items);
       // Load the most recent session
       if (items.length > 0) {
@@ -197,18 +225,16 @@ export default function Workspace() {
   const createNewSession = async () => {
     if (!appId) return;
     try {
-      const res = await client.entities.agent_sessions.create({
-        data: {
-          app_id: Number(appId),
-          mode: mode,
-          messages_json: JSON.stringify([]),
-          status: 'active',
-        },
+      const res = await api.post('/api/v1/entities/agent_sessions', {
+        app_id: Number(appId),
+        mode: mode,
+        messages_json: JSON.stringify([]),
+        status: 'active',
       });
-      if (res?.data) {
-        setCurrentSession(res.data);
+      if (res) {
+        setCurrentSession(res);
         setMessages([]);
-        setSessions(prev => [res.data, ...prev]);
+        setSessions(prev => [res, ...prev]);
       }
     } catch {
       // Handle error
@@ -246,12 +272,9 @@ export default function Workspace() {
         agent: m.agent,
         timestamp: m.timestamp.toISOString(),
       }));
-      await client.entities.agent_sessions.update({
-        id: currentSession.id,
-        data: {
-          messages_json: JSON.stringify(serializable),
-          status: 'active',
-        },
+      await api.put(`/api/v1/entities/agent_sessions/${currentSession.id}`, {
+        messages_json: JSON.stringify(serializable),
+        status: 'active',
       });
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
@@ -281,13 +304,11 @@ export default function Workspace() {
   const createFile = async () => {
     if (!newFilePath.trim() || !appId) return;
     try {
-      await client.entities.app_files.create({
-        data: {
-          app_id: Number(appId),
-          path: newFilePath.trim(),
-          content: '',
-          language: getLanguage(newFilePath),
-        },
+      await api.post('/api/v1/entities/app_files', {
+        app_id: Number(appId),
+        path: newFilePath.trim(),
+        content: '',
+        language: getLanguage(newFilePath),
       });
       setShowNewFile(false);
       setNewFilePath('');
@@ -304,10 +325,7 @@ export default function Workspace() {
     const file = files.find(f => f.path === activeFile);
     if (!file) return;
     try {
-      await client.entities.app_files.update({
-        id: file.id,
-        data: { content: activeFileContent },
-      });
+      await api.put(`/api/v1/entities/app_files/${file.id}`, { content: activeFileContent });
       setEditingFile(false);
       await loadFiles();
     } catch {
@@ -320,7 +338,7 @@ export default function Workspace() {
     if (!file || !appId) return;
     if (!confirm(`Delete ${path}?`)) return;
     try {
-      await client.entities.app_files.delete({ id: file.id });
+      await api.delete(`/api/v1/entities/app_files/${file.id}`);
       if (activeFile === path) {
         const remaining = files.filter(f => f.path !== path);
         if (remaining.length > 0) {
@@ -340,17 +358,15 @@ export default function Workspace() {
   const createApp = async () => {
     if (!newAppName.trim()) return;
     try {
-      const res = await client.entities.apps.create({
-        data: {
-          name: newAppName,
-          type: newAppType,
-          status: 'draft',
-          agent_mode: mode,
-          description: `A ${newAppType} application`,
-        },
+      const res = await api.post('/api/v1/entities/apps', {
+        name: newAppName,
+        type: newAppType,
+        status: 'draft',
+        agent_mode: mode,
+        description: `A ${newAppType} application`,
       });
-      if (res?.data?.id) {
-        navigate(`/workspace/${res.data.id}`, { replace: true });
+      if (res?.id) {
+        navigate(`/workspace/${res.id}`, { replace: true });
         setShowNewApp(false);
         setAppName(newAppName);
       }
@@ -447,12 +463,10 @@ export default function Workspace() {
   const handleDeploy = async () => {
     if (!appId) return;
     try {
-      await client.entities.deployments.create({
-        data: {
-          app_id: Number(appId),
-          app_name: appName,
-          status: 'pending',
-        },
+      await api.post('/api/v1/entities/deployments', {
+        app_id: Number(appId),
+        app_name: appName,
+        status: 'pending',
       });
       navigate('/deployments');
     } catch {
@@ -460,7 +474,7 @@ export default function Workspace() {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
