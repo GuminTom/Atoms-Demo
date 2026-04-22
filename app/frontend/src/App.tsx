@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { PreferencesProvider } from './contexts/PreferencesContext';
 import Layout from './components/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Index';
 import Workspace from './pages/Workspace';
 import Deployments from './pages/Deployments';
@@ -21,56 +22,80 @@ function App() {
         <PreferencesProvider>
         <BrowserRouter>
           <Routes>
+            {/* Public routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+
+            {/* Protected routes */}
             <Route
               path="/"
               element={
-                <Layout>
-                  <Dashboard />
-                </Layout>
+                <ProtectedRoute>
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/workspace"
-              element={<Workspace />}
+              element={
+                <ProtectedRoute>
+                  <Workspace />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/workspace/:appId"
-              element={<Workspace />}
+              element={
+                <ProtectedRoute>
+                  <Workspace />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/deployments"
               element={
-                <Layout>
-                  <Deployments />
-                </Layout>
+                <ProtectedRoute>
+                  <Layout>
+                    <Deployments />
+                  </Layout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/statistics"
               element={
-                <Layout>
-                  <Statistics />
-                </Layout>
+                <ProtectedRoute>
+                  <Layout>
+                    <Statistics />
+                  </Layout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/settings"
               element={
-                <Layout>
-                  <Settings />
-                </Layout>
+                <ProtectedRoute>
+                  <Layout>
+                    <Settings />
+                  </Layout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/profile"
               element={
-                <Layout>
-                  <Profile />
-                </Layout>
+                <ProtectedRoute>
+                  <Layout>
+                    <Profile />
+                  </Layout>
+                </ProtectedRoute>
               }
             />
+
+            {/* Catch-all redirect */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
         </PreferencesProvider>

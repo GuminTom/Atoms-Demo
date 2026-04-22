@@ -130,7 +130,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // fallback
     }
     setUser(null);
-    window.location.href = '/';
+    window.location.href = '/login';
   }, []);
 
   const localLogin = useCallback(async (username: string, password: string) => {
