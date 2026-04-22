@@ -23,8 +23,24 @@ logger = logging.getLogger(__name__)
 
 
 def _prepare_password(password: str) -> str:
-    """Truncate password to 72 bytes for bcrypt compatibility."""
-    return password[:72]
+    """Truncate password to 72 bytes for bcrypt compatibility.
+
+    bcrypt only accepts passwords up to 72 bytes. We truncate at the byte
+    level to guarantee the limit is never exceeded, even with multi-byte
+    UTF-8 characters.
+    """
+    encoded = password.encode("utf-8")
+    if len(encoded) <= 72:
+        return password
+    # Truncate to 72 bytes, then decode back carefully to avoid
+    # splitting a multi-byte character at the boundary.
+    truncated = encoded[:72]
+    while truncated:
+        try:
+            return truncated.decode("utf-8")
+        except UnicodeDecodeError:
+            truncated = truncated[:-1]
+    return ""
 
 
 class AuthService:

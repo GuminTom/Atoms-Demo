@@ -9,7 +9,7 @@ class RegisterRequest(BaseModel):
 
     username: str = Field(..., min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_]+$")
     email: str = Field(..., description="User email address")
-    password: str = Field(..., min_length=6, max_length=128)
+    password: str = Field(..., min_length=6, max_length=72, description="Password (6-72 characters, bcrypt limit)")
     name: Optional[str] = None
 
 

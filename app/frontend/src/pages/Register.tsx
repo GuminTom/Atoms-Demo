@@ -44,6 +44,11 @@ const Register: React.FC = () => {
       return;
     }
 
+    if (password.length > 72) {
+      setError('Password must be no more than 72 characters');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -126,12 +131,13 @@ const Register: React.FC = () => {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Create a password (min 6 characters)"
+                  placeholder="Create a password (6-72 characters)"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="new-password"
                   minLength={6}
+                  maxLength={72}
                   className="bg-muted border-border text-foreground"
                 />
               </div>
@@ -146,6 +152,7 @@ const Register: React.FC = () => {
                   required
                   autoComplete="new-password"
                   minLength={6}
+                  maxLength={72}
                   className="bg-muted border-border text-foreground"
                 />
               </div>
