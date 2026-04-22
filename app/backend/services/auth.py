@@ -14,13 +14,9 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 try:
-    from passlib.context import CryptContext
-    # truncate_error=False: silently truncate passwords > 72 bytes instead of raising ValueError.
-    # We also truncate manually in _prepare_password() for explicit control, but this ensures
-    # passlib never raises the "password cannot be longer than 72 bytes" error.
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__truncate_error=False)
+    import bcrypt
 except ImportError:
-    pwd_context = None
+    bcrypt = None
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +40,23 @@ def _prepare_password(password: str) -> str:
         except UnicodeDecodeError:
             truncated = truncated[:-1]
     return ""
+
+
+def _require_bcrypt():
+    if bcrypt is None:
+        raise RuntimeError("bcrypt is not installed. Run: pip install bcrypt")
+
+
+def _hash_password(password: str) -> str:
+    _require_bcrypt()
+    prepared_password = _prepare_password(password).encode("utf-8")
+    return bcrypt.hashpw(prepared_password, bcrypt.gensalt()).decode("utf-8")
+
+
+def _verify_password(password: str, hashed_password: str) -> bool:
+    _require_bcrypt()
+    prepared_password = _prepare_password(password).encode("utf-8")
+    return bcrypt.checkpw(prepared_password, hashed_password.encode("utf-8"))
 
 
 class AuthService:
@@ -106,9 +119,6 @@ class AuthService:
         self, username: str, email: str, password: str, name: Optional[str] = None
     ) -> Tuple[LocalUser, str]:
         """Register a new local user with username and password."""
-        if pwd_context is None:
-            raise RuntimeError("passlib is not installed. Run: pip install passlib[bcrypt]")
-
         # Check if username already exists
         result = await self.db.execute(select(LocalUser).where(LocalUser.username == username))
         if result.scalar_one_or_none():
@@ -120,7 +130,7 @@ class AuthService:
             raise ValueError("Email already exists")
 
         # Create local user
-        hashed_password = pwd_context.hash(_prepare_password(password))
+        hashed_password = _hash_password(password)
         local_user = LocalUser(
             id=str(uuid.uuid4()),
             username=username,
@@ -166,9 +176,6 @@ class AuthService:
 
     async def login_local_user(self, username: str, password: str) -> Tuple[LocalUser, str]:
         """Authenticate a local user with username/email and password."""
-        if pwd_context is None:
-            raise RuntimeError("passlib is not installed. Run: pip install passlib[bcrypt]")
-
         # Try to find by username first, then by email
         result = await self.db.execute(select(LocalUser).where(LocalUser.username == username))
         local_user = result.scalar_one_or_none()
@@ -180,7 +187,7 @@ class AuthService:
         if not local_user:
             raise ValueError("Invalid username or password")
 
-        if not pwd_context.verify(_prepare_password(password), local_user.hashed_password):
+        if not _verify_password(password, local_user.hashed_password):
             raise ValueError("Invalid username or password")
 
         # Update last login
