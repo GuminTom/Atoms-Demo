@@ -15,7 +15,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 try:
     from passlib.context import CryptContext
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    # truncate_error=False: silently truncate passwords > 72 bytes instead of raising ValueError.
+    # We also truncate manually in _prepare_password() for explicit control, but this ensures
+    # passlib never raises the "password cannot be longer than 72 bytes" error.
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__truncate_error=False)
 except ImportError:
     pwd_context = None
 

@@ -39,13 +39,15 @@ const Register: React.FC = () => {
       return;
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+    // Validate byte length (bcrypt limit is 72 bytes, not characters)
+    const passwordBytes = new TextEncoder().encode(password).length;
+    if (passwordBytes < 6) {
+      setError('Password must be at least 6 bytes');
       return;
     }
 
-    if (password.length > 72) {
-      setError('Password must be no more than 72 characters');
+    if (passwordBytes > 72) {
+      setError('Password must be no more than 72 bytes (multi-byte characters count as multiple bytes)');
       return;
     }
 
@@ -131,13 +133,11 @@ const Register: React.FC = () => {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Create a password (6-72 characters)"
+                  placeholder="Create a password (6-72 bytes)"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="new-password"
-                  minLength={6}
-                  maxLength={72}
                   className="bg-muted border-border text-foreground"
                 />
               </div>
@@ -151,8 +151,6 @@ const Register: React.FC = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   autoComplete="new-password"
-                  minLength={6}
-                  maxLength={72}
                   className="bg-muted border-border text-foreground"
                 />
               </div>
