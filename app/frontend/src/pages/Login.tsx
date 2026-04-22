@@ -50,7 +50,7 @@ const Login: React.FC = () => {
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-600 to-cyan-600 flex items-center justify-center">
             <Zap className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">VideoCode</h1>
+          <h1 className="text-2xl font-bold text-foreground">VibeCode</h1>
           <p className="text-muted-foreground text-sm">Multi-Agent Video Coding Platform</p>
         </div>
 
