@@ -355,8 +355,13 @@ export default function Workspace() {
     }
   };
 
+  const [createError, setCreateError] = useState<string>('');
+  const [creatingApp, setCreatingApp] = useState(false);
+
   const createApp = async () => {
-    if (!newAppName.trim()) return;
+    if (!newAppName.trim() || creatingApp) return;
+    setCreateError('');
+    setCreatingApp(true);
     try {
       const res = await api.post('/api/v1/entities/apps', {
         name: newAppName,
@@ -366,12 +371,22 @@ export default function Workspace() {
         description: `A ${newAppType} application`,
       });
       if (res?.id) {
-        navigate(`/workspace/${res.id}`, { replace: true });
         setShowNewApp(false);
         setAppName(newAppName);
+        navigate(`/workspace/${res.id}`, { replace: true });
+      } else {
+        setCreateError('Server returned an empty response. Please try again.');
       }
-    } catch {
-      // Handle error
+    } catch (err: any) {
+      const status = err?.status;
+      if (status === 401) {
+        setCreateError('Your session has expired. Please sign in again.');
+        setTimeout(() => navigate('/login'), 1500);
+      } else {
+        setCreateError(err?.message || 'Failed to create app. Please try again.');
+      }
+    } finally {
+      setCreatingApp(false);
     }
   };
 
@@ -552,13 +567,27 @@ export default function Workspace() {
                 </button>
               </div>
             </div>
+            {createError && (
+              <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-xs text-rose-300">
+                {createError}
+              </div>
+            )}
             <Button
               onClick={createApp}
               className="w-full bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white font-medium rounded-xl"
-              disabled={!newAppName.trim()}
+              disabled={!newAppName.trim() || creatingApp}
             >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Create & Start Coding
+              {creatingApp ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Create & Start Coding
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>
