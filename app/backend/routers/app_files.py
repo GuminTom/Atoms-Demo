@@ -2,6 +2,7 @@ import json
 import logging
 from typing import List, Optional
 
+from datetime import datetime, date
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -38,10 +39,13 @@ class App_filesUpdateData(BaseModel):
 class App_filesResponse(BaseModel):
     """Entity response schema"""
     id: int
+    user_id: str
     app_id: int
     path: str
     content: Optional[str] = None
     language: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
