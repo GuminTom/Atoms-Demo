@@ -1,0 +1,32 @@
+{
+    "title": "statistics",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "description": "Primary key, auto-increment"
+        },
+        "user_id": {
+            "type": "string",
+            "description": "User ID"
+        },
+        "app_id": {
+            "type": "integer",
+            "description": "Related app ID (nullable)"
+        },
+        "metric_type": {
+            "type": "string",
+            "description": "Type: tokens_input, tokens_output, deployments, visits"
+        },
+        "metric_value": {
+            "type": "integer",
+            "description": "Metric value"
+        }
+    },
+    "required": [
+        "id",
+        "user_id",
+        "metric_type",
+        "metric_value"
+    ]
+}

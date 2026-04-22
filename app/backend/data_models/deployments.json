@@ -1,0 +1,43 @@
+{
+    "title": "deployments",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "description": "Primary key, auto-increment"
+        },
+        "user_id": {
+            "type": "string",
+            "description": "User who deployed"
+        },
+        "app_id": {
+            "type": "integer",
+            "description": "Related app ID"
+        },
+        "status": {
+            "type": "string",
+            "description": "Status: building, deploying, running, failed"
+        },
+        "url": {
+            "type": "string",
+            "description": "Deployed app URL"
+        },
+        "version": {
+            "type": "string",
+            "description": "Deployment version"
+        },
+        "environment": {
+            "type": "string",
+            "description": "Environment: staging, production"
+        },
+        "logs": {
+            "type": "string",
+            "description": "Build/deployment logs"
+        }
+    },
+    "required": [
+        "id",
+        "user_id",
+        "app_id"
+    ]
+}

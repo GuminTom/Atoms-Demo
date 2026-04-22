@@ -1,0 +1,43 @@
+{
+    "title": "apps",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "description": "Primary key, auto-increment"
+        },
+        "user_id": {
+            "type": "string",
+            "description": "Owner user ID"
+        },
+        "name": {
+            "type": "string",
+            "description": "Application name"
+        },
+        "description": {
+            "type": "string",
+            "description": "Application description"
+        },
+        "type": {
+            "type": "string",
+            "description": "Project type: react, vue, static, nodejs, python"
+        },
+        "status": {
+            "type": "string",
+            "description": "Status: draft, published, archived"
+        },
+        "agent_mode": {
+            "type": "string",
+            "description": "Agent mode: engineer, team"
+        },
+        "thumbnail": {
+            "type": "string",
+            "description": "Thumbnail image URL"
+        }
+    },
+    "required": [
+        "id",
+        "user_id",
+        "name"
+    ]
+}

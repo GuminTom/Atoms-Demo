@@ -1,0 +1,36 @@
+{
+    "title": "agent_sessions",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "description": "Primary key, auto-increment"
+        },
+        "user_id": {
+            "type": "string",
+            "description": "User ID"
+        },
+        "app_id": {
+            "type": "integer",
+            "description": "Related app ID"
+        },
+        "mode": {
+            "type": "string",
+            "description": "Agent mode: engineer, team"
+        },
+        "messages_json": {
+            "type": "string",
+            "description": "JSON string of conversation messages"
+        },
+        "status": {
+            "type": "string",
+            "description": "Session status: active, paused, completed"
+        }
+    },
+    "required": [
+        "id",
+        "user_id",
+        "app_id",
+        "mode"
+    ]
+}
