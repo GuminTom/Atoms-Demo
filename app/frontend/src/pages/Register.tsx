@@ -72,7 +72,7 @@ const Register: React.FC = () => {
             <Zap className="w-6 h-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-foreground">VibeCode</h1>
-          <p className="text-muted-foreground text-sm">Multi-Agent Video Coding Platform</p>
+          <p className="text-muted-foreground text-sm">Multi-Agent Vibe Coding Platform</p>
         </div>
 
         <Card className="bg-card border-border">
