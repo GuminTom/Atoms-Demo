@@ -134,7 +134,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const localLogin = useCallback(async (username: string, password: string) => {
-    const data = await api.post('/local-auth/login', { username, password });
+    const data = await api.post('/api/v1/local-auth/login', { username, password });
     if (data?.token) {
       localStorage.setItem('auth_token', data.token);
     }
@@ -149,7 +149,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const localRegister = useCallback(async (username: string, email: string, password: string, name?: string) => {
-    const data = await api.post('/local-auth/register', { username, email, password, name });
+    const data = await api.post('/api/v1/local-auth/register', { username, email, password, name });
     if (data?.token) {
       localStorage.setItem('auth_token', data.token);
     }

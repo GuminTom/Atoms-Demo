@@ -9,7 +9,7 @@ from core.database import get_db
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/local-auth", tags=["Local Authentication"])
+router = APIRouter(prefix="/api/v1/local-auth", tags=["Local Authentication"])
 
 
 @router.post("/register", response_model=LocalAuthResponse, status_code=status.HTTP_201_CREATED)
