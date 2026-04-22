@@ -30,6 +30,7 @@ import {
   CheckCircle2,
   Clock,
   RotateCcw,
+  ArrowLeft,
 } from 'lucide-react';
 
 interface Message {
@@ -470,6 +471,14 @@ export default function Workspace() {
         <Card className="bg-zinc-900 border-zinc-800 w-full max-w-md mx-4">
           <CardHeader>
             <CardTitle className="text-zinc-100 flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 -ml-2 mr-1"
+                onClick={() => navigate('/')}
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
               <Plus className="w-5 h-5 text-violet-400" />
               Create New App
             </CardTitle>
