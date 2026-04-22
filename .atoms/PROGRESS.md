@@ -18,4 +18,5 @@ last_updated: 2026-04-22T12:52:54Z
 - 2026-04-22: Statistics dashboard implemented — summary cards, weekly activity chart, agent mode usage, quick stats, recent deployments
 - 2026-04-22: Profile page implemented — user info with edit, integrations, preferences, account/sign-out
 - 2026-04-22: Lint and build pass, UI rendering verified
+- 2026-04-22: Verified all password validation fixes — frontend byte-length check, backend schema truncation, auth service _prepare_password() all consistent; lint and build pass
 
