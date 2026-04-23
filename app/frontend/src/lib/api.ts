@@ -73,3 +73,33 @@ export const api = {
   post: <T = any>(url: string, data?: Record<string, unknown>) => request<T>(url, 'POST', data),
   delete: <T = any>(url: string) => request<T>(url, 'DELETE'),
 };
+
+/**
+ * Build a query URL for entity endpoints.
+ *
+ * Supports an optional filter dict (serialized as JSON in the `query` param),
+ * pagination, and sorting.
+ */
+export function buildEntityQueryUrl(
+  basePath: string,
+  queryDict?: Record<string, unknown>,
+  options?: { limit?: number; sort?: string; skip?: number }
+): string {
+  const params = new URLSearchParams();
+
+  if (queryDict && Object.keys(queryDict).length > 0) {
+    params.set('query', JSON.stringify(queryDict));
+  }
+  if (typeof options?.limit === 'number') {
+    params.set('limit', String(options.limit));
+  }
+  if (typeof options?.skip === 'number') {
+    params.set('skip', String(options.skip));
+  }
+  if (options?.sort) {
+    params.set('sort', options.sort);
+  }
+
+  const query = params.toString();
+  return query ? `${basePath}?${query}` : basePath;
+}

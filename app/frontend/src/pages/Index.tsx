@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { client } from '../lib/api';
+import { api, buildEntityQueryUrl } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -132,11 +132,13 @@ export default function Dashboard() {
 
   const fetchApps = async () => {
     try {
-      const res = await client.entities.apps.query({
-        sort: '-updated_at',
-        limit: 50,
-      });
-      setApps(res?.data?.items || []);
+      const res = await api.get(
+        buildEntityQueryUrl('/api/v1/entities/apps', undefined, {
+          sort: '-updated_at',
+          limit: 50,
+        })
+      );
+      setApps(res?.items || []);
     } catch {
       setApps([]);
     } finally {
@@ -160,9 +162,9 @@ export default function Dashboard() {
       return;
     }
     try {
-      await client.entities.apps.update({
-        id: appId,
-        data: { name: editName, description: editDesc },
+      await api.put(`/api/v1/entities/apps/${appId}`, {
+        name: editName,
+        description: editDesc,
       });
       setEditingApp(null);
       await fetchApps();
@@ -179,7 +181,7 @@ export default function Dashboard() {
       return;
     }
     try {
-      await client.entities.apps.delete({ id: appId });
+      await api.delete(`/api/v1/entities/apps/${appId}`);
       setDeleteConfirm(null);
       setMenuOpen(null);
       await fetchApps();
@@ -197,10 +199,7 @@ export default function Dashboard() {
       return;
     }
     try {
-      await client.entities.apps.update({
-        id: appId,
-        data: { status: newStatus },
-      });
+      await api.put(`/api/v1/entities/apps/${appId}`, { status: newStatus });
       setMenuOpen(null);
       await fetchApps();
     } catch {
@@ -223,31 +222,27 @@ export default function Dashboard() {
     setDeployingApp(app.id);
     setMenuOpen(null);
     try {
-      await client.entities.deployments.create({
-        data: {
-          app_id: app.id,
-          status: 'building',
-          version: 'v1',
-          environment: 'production',
-          url: `https://${app.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${app.id}.vibecode.app`,
-        },
+      await api.post('/api/v1/entities/deployments', {
+        app_id: app.id,
+        status: 'building',
+        version: 'v1',
+        environment: 'production',
+        url: `https://${app.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${app.id}.vibecode.app`,
       });
-      await client.entities.apps.update({
-        id: app.id,
-        data: { status: 'published' },
-      });
+      await api.put(`/api/v1/entities/apps/${app.id}`, { status: 'published' });
       setTimeout(async () => {
         try {
-          const depRes = await client.entities.deployments.query({
-            query: JSON.stringify({ app_id: app.id }),
-            sort: '-created_at',
-            limit: 1,
-          });
-          const latestDep = depRes?.data?.items?.[0];
+          const depRes = await api.get(
+            buildEntityQueryUrl(
+              '/api/v1/entities/deployments',
+              { app_id: app.id },
+              { sort: '-created_at', limit: 1 }
+            )
+          );
+          const latestDep = depRes?.items?.[0];
           if (latestDep) {
-            await client.entities.deployments.update({
-              id: latestDep.id,
-              data: { status: 'deployed' },
+            await api.put(`/api/v1/entities/deployments/${latestDep.id}`, {
+              status: 'deployed',
             });
           }
           await fetchApps();
