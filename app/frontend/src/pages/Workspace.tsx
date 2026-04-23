@@ -129,12 +129,33 @@ export default function Workspace() {
   const [rightTab, setRightTab] = useState('preview');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const streamingContentRef = useRef<string>('');
+  // Keep an up-to-date ref of messages so that async handlers (unmount,
+  // session switch, tab close) can always persist the freshest content
+  // instead of operating on a stale closure snapshot.
+  const messagesRef = useRef<Message[]>([]);
+  // rAF-batched flush scheduler: streaming chunks arrive faster than the
+  // browser can paint. We coalesce updates into one paint per frame for
+  // smooth progressive rendering without dropping characters.
+  const streamRafRef = useRef<number | null>(null);
+  // True while the agent is actively streaming a response. Used to skip
+  // the debounced auto-save so we don't overwrite the session with a
+  // half-complete message, and also to prevent duplicate saves.
+  const streamingRef = useRef<boolean>(false);
 
   // Session persistence state
   const [currentSession, setCurrentSession] = useState<SessionInfo | null>(null);
+  const currentSessionRef = useRef<SessionInfo | null>(null);
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Keep refs in sync with state for use in async handlers.
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+  useEffect(() => {
+    currentSessionRef.current = currentSession;
+  }, [currentSession]);
 
   useEffect(() => {
     if (appId) {
@@ -148,9 +169,18 @@ export default function Workspace() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Auto-save messages when they change (only when auto_save preference is enabled)
+  // Auto-save messages when they change (only when auto_save preference is
+  // enabled). Skip saving while the agent is actively streaming — the
+  // stream loop will explicitly persist a final snapshot when it
+  // finishes, which avoids thrashing the DB with partial content.
   useEffect(() => {
-    if (prefs.auto_save && messages.length > 0 && appId && currentSession) {
+    if (
+      prefs.auto_save &&
+      messages.length > 0 &&
+      appId &&
+      currentSession &&
+      !streamingRef.current
+    ) {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
       autoSaveTimerRef.current = setTimeout(() => {
         persistMessages(messages);
@@ -160,6 +190,61 @@ export default function Workspace() {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     };
   }, [messages, appId, currentSession, prefs.auto_save, prefs.auto_save_delay]);
+
+  // Safety net: persist on tab close / refresh / navigation away so the
+  // user never loses the last turn, even if the debounce hasn't fired.
+  useEffect(() => {
+    const flushNow = () => {
+      const sess = currentSessionRef.current;
+      const msgs = messagesRef.current;
+      if (!sess || !appId || msgs.length === 0) return;
+      try {
+        const serializable = msgs.map(m => ({
+          id: m.id,
+          role: m.role,
+          content: m.content,
+          agent: m.agent,
+          timestamp: m.timestamp.toISOString(),
+        }));
+        const token = localStorage.getItem('auth_token');
+        const payload = JSON.stringify({
+          messages_json: JSON.stringify(serializable),
+          status: 'active',
+        });
+        // sendBeacon survives page unload; falls back to fetch+keepalive
+        // for browsers/headers that don't support Beacon with auth.
+        if (token) {
+          fetch(`/api/v1/entities/agent_sessions/${sess.id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: payload,
+            keepalive: true,
+            credentials: 'include',
+          }).catch(() => {});
+        }
+      } catch {
+        // Ignore — best effort only.
+      }
+    };
+    window.addEventListener('beforeunload', flushNow);
+    window.addEventListener('pagehide', flushNow);
+    return () => {
+      window.removeEventListener('beforeunload', flushNow);
+      window.removeEventListener('pagehide', flushNow);
+      // Also persist on component unmount (e.g. route change).
+      flushNow();
+      if (streamRafRef.current != null) {
+        cancelAnimationFrame(streamRafRef.current);
+        streamRafRef.current = null;
+      }
+    };
+    // We intentionally do not include messages/currentSession: the refs
+    // give us the latest values and we don't want to re-register the
+    // listeners on every keystroke.
+  }, [appId]);
 
   const loadApp = async () => {
     try {
@@ -260,8 +345,12 @@ export default function Workspace() {
     }
   };
 
-  const persistMessages = async (msgs: Message[]) => {
-    if (!currentSession || !appId) return;
+  const persistMessages = async (
+    msgs: Message[],
+    sessionOverride?: SessionInfo | null
+  ) => {
+    const sess = sessionOverride ?? currentSessionRef.current ?? currentSession;
+    if (!sess || !appId) return;
     setSaveStatus('saving');
     try {
       const serializable = msgs.map(m => ({
@@ -271,7 +360,7 @@ export default function Workspace() {
         agent: m.agent,
         timestamp: m.timestamp.toISOString(),
       }));
-      await api.put(`/api/v1/entities/agent_sessions/${currentSession.id}`, {
+      await api.put(`/api/v1/entities/agent_sessions/${sess.id}`, {
         messages_json: JSON.stringify(serializable),
         status: 'active',
       });
@@ -283,12 +372,41 @@ export default function Workspace() {
   };
 
   const switchSession = async (session: SessionInfo) => {
-    // Save current session first
-    if (currentSession && messages.length > 0) {
-      await persistMessages(messages);
+    // Save current session first using the ref so we capture the freshest
+    // messages, even if the latest streaming chunk just landed.
+    const prevSession = currentSessionRef.current;
+    const prevMessages = messagesRef.current;
+    if (prevSession && prevMessages.length > 0 && prevSession.id !== session.id) {
+      await persistMessages(prevMessages, prevSession);
     }
     setCurrentSession(session);
     restoreMessages(session);
+  };
+
+  const deleteSession = async (session: SessionInfo) => {
+    if (!appId) return;
+    if (!confirm(`Delete this session permanently? This cannot be undone.`)) return;
+    try {
+      await api.delete(`/api/v1/entities/agent_sessions/${session.id}`);
+      // Remove from local list.
+      const remaining = sessions.filter(s => s.id !== session.id);
+      setSessions(remaining);
+      // If the deleted session is the current one, switch to the most
+      // recent remaining session, or start a fresh one if none remain.
+      if (currentSessionRef.current?.id === session.id) {
+        if (remaining.length > 0) {
+          setCurrentSession(remaining[0]);
+          restoreMessages(remaining[0]);
+        } else {
+          // Clear state and create a new empty session.
+          setCurrentSession(null);
+          setMessages([]);
+          await createNewSession();
+        }
+      }
+    } catch {
+      // Handle error silently; user will see the session still present.
+    }
   };
 
   const selectFile = async (path: string) => {
@@ -401,6 +519,7 @@ export default function Workspace() {
     setInput('');
     setSending(true);
     streamingContentRef.current = '';
+    streamingRef.current = true;
 
     const agentName = mode === 'team'
       ? ['Alex', 'Emma', 'Bob'][Math.floor(Math.random() * 3)]
@@ -475,6 +594,20 @@ export default function Workspace() {
       const decoder = new TextDecoder();
       let buffer = '';
 
+      // Coalesce many small SSE chunks into a single React render per
+      // animation frame. This makes streaming feel smooth (characters
+      // appear progressively instead of arriving in large UI-batched
+      // bursts) without dropping any content.
+      const flushToUI = () => {
+        streamRafRef.current = null;
+        const snapshot = streamingContentRef.current;
+        setMessages(prev =>
+          prev.map(m =>
+            m.id === agentMsgId ? { ...m, content: snapshot } : m
+          )
+        );
+      };
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -486,6 +619,7 @@ export default function Workspace() {
         const parts = buffer.split('\n\n');
         buffer = parts.pop() || '';
 
+        let gotContent = false;
         for (const part of parts) {
           const lines = part.split('\n');
           // An SSE "data:" payload can span multiple lines; join them.
@@ -501,22 +635,42 @@ export default function Workspace() {
             const parsed = JSON.parse(data);
             if (parsed?.content) {
               streamingContentRef.current += parsed.content;
-              setMessages(prev =>
-                prev.map(m =>
-                  m.id === agentMsgId
-                    ? { ...m, content: streamingContentRef.current }
-                    : m
-                )
-              );
+              gotContent = true;
             }
           } catch {
             // Ignore malformed chunks (e.g. heartbeats).
           }
         }
+
+        if (gotContent && streamRafRef.current == null) {
+          streamRafRef.current = requestAnimationFrame(flushToUI);
+        }
       }
 
+      // Final flush to ensure the last chunk is rendered.
+      if (streamRafRef.current != null) {
+        cancelAnimationFrame(streamRafRef.current);
+        streamRafRef.current = null;
+      }
+      flushToUI();
+
+      streamingRef.current = false;
       setSending(false);
+
+      // Persist the completed exchange immediately so it can never be
+      // lost to a tab-close or navigation before the debounce fires.
+      const finalMsgs = messagesRef.current.map(m =>
+        m.id === agentMsgId
+          ? { ...m, content: streamingContentRef.current }
+          : m
+      );
+      messagesRef.current = finalMsgs;
+      persistMessages(finalMsgs);
     } catch (err: any) {
+      if (streamRafRef.current != null) {
+        cancelAnimationFrame(streamRafRef.current);
+        streamRafRef.current = null;
+      }
       setMessages(prev =>
         prev.map(m =>
           m.id === agentMsgId
@@ -524,7 +678,11 @@ export default function Workspace() {
             : m
         )
       );
+      streamingRef.current = false;
       setSending(false);
+      // Still try to persist whatever partial content exists so the user
+      // sees an error trail instead of a blank turn after reload.
+      persistMessages(messagesRef.current);
     }
   };
 
@@ -718,25 +876,37 @@ export default function Workspace() {
         </ScrollArea>
 
         {/* Session History at bottom */}
-        {sessions.length > 1 && (
+        {sessions.length > 0 && (
           <div className="border-t border-border p-2">
             <p className="text-[10px] text-muted-foreground/70 uppercase tracking-wider mb-1 px-1">Sessions</p>
-            <div className="space-y-0.5 max-h-32 overflow-y-auto">
-              {sessions.slice(0, 5).map(s => (
-                <button
+            <div className="space-y-0.5 max-h-40 overflow-y-auto">
+              {sessions.slice(0, 8).map(s => (
+                <div
                   key={s.id}
-                  onClick={() => switchSession(s)}
-                  className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors ${
+                  className={`group flex items-center gap-1 rounded text-xs transition-colors ${
                     currentSession?.id === s.id
                       ? 'bg-violet-500/15 text-violet-300'
                       : 'text-muted-foreground hover:text-foreground/80 hover:bg-muted/50'
                   }`}
                 >
-                  <Clock className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate">
-                    {s.created_at ? new Date(s.created_at).toLocaleDateString() : `Session #${s.id}`}
-                  </span>
-                </button>
+                  <button
+                    onClick={() => switchSession(s)}
+                    className="flex-1 flex items-center gap-2 px-2 py-1.5 text-left min-w-0"
+                    title={s.created_at ? new Date(s.created_at).toLocaleString() : `Session #${s.id}`}
+                  >
+                    <Clock className="w-3 h-3 flex-shrink-0" />
+                    <span className="truncate">
+                      {s.created_at ? new Date(s.created_at).toLocaleDateString() : `Session #${s.id}`}
+                    </span>
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deleteSession(s); }}
+                    className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground/70 hover:text-rose-400 transition-all flex-shrink-0"
+                    title="Delete session permanently"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
               ))}
             </div>
           </div>
