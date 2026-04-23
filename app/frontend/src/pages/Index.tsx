@@ -35,7 +35,6 @@ interface AppItem {
   id: number;
   name: string;
   description?: string;
-  type?: string;
   status?: string;
   agent_mode?: string;
   thumbnail?: string;
@@ -51,7 +50,6 @@ const DEMO_APPS: AppItem[] = [
     id: 1,
     name: 'E-Commerce Store',
     description: 'Full-stack online store with product catalog, cart, and checkout flow',
-    type: 'react',
     status: 'published',
     agent_mode: 'team',
     created_at: '2026-04-18T10:30:00Z',
@@ -61,7 +59,6 @@ const DEMO_APPS: AppItem[] = [
     id: 2,
     name: 'Task Manager',
     description: 'Kanban-style project management tool with drag-and-drop boards',
-    type: 'vue',
     status: 'draft',
     agent_mode: 'engineer',
     created_at: '2026-04-19T08:15:00Z',
@@ -71,7 +68,6 @@ const DEMO_APPS: AppItem[] = [
     id: 3,
     name: 'Portfolio Site',
     description: 'Personal portfolio with blog, project showcase, and contact form',
-    type: 'static',
     status: 'published',
     agent_mode: 'engineer',
     created_at: '2026-04-15T16:00:00Z',
@@ -81,7 +77,6 @@ const DEMO_APPS: AppItem[] = [
     id: 4,
     name: 'AI Chat App',
     description: 'Real-time chat application powered by multi-agent AI system',
-    type: 'react',
     status: 'draft',
     agent_mode: 'team',
     created_at: '2026-04-20T12:00:00Z',
@@ -91,7 +86,6 @@ const DEMO_APPS: AppItem[] = [
     id: 5,
     name: 'Analytics Dashboard',
     description: 'Data visualization dashboard with charts and real-time metrics',
-    type: 'react',
     status: 'archived',
     agent_mode: 'team',
     created_at: '2026-04-10T09:00:00Z',
@@ -101,7 +95,6 @@ const DEMO_APPS: AppItem[] = [
     id: 6,
     name: 'Blog Platform',
     description: 'Markdown-based blogging platform with SEO optimization',
-    type: 'nodejs',
     status: 'draft',
     agent_mode: 'engineer',
     created_at: '2026-04-21T07:00:00Z',
@@ -121,7 +114,6 @@ export default function Dashboard() {
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [sortMode, setSortMode] = useState<SortMode>('updated');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [deployingApp, setDeployingApp] = useState<number | null>(null);
@@ -289,10 +281,6 @@ export default function Dashboard() {
       result = result.filter((app) => (app.status || 'draft') === statusFilter);
     }
 
-    if (typeFilter !== 'all') {
-      result = result.filter((app) => app.type === typeFilter);
-    }
-
     result.sort((a, b) => {
       switch (sortMode) {
         case 'name':
@@ -306,12 +294,7 @@ export default function Dashboard() {
     });
 
     return result;
-  }, [apps, searchQuery, statusFilter, typeFilter, sortMode]);
-
-  const uniqueTypes = useMemo(() => {
-    const types = new Set(apps.map((a) => a.type).filter(Boolean));
-    return Array.from(types) as string[];
-  }, [apps]);
+  }, [apps, searchQuery, statusFilter, sortMode]);
 
   if (authLoading) {
     return (
@@ -371,14 +354,6 @@ export default function Dashboard() {
     draft: 'bg-muted/30 text-muted-foreground',
     published: 'bg-emerald-500/20 text-emerald-400',
     archived: 'bg-amber-500/20 text-amber-400',
-  };
-
-  const typeIcon: Record<string, string> = {
-    react: '⚛️',
-    vue: '💚',
-    static: '📄',
-    nodejs: '🟢',
-    python: '🐍',
   };
 
   const getNextStatus = (currentStatus: string): { status: string; label: string; icon: typeof Rocket }[] => {
@@ -522,35 +497,6 @@ export default function Dashboard() {
               </button>
             ))}
           </div>
-
-          {/* Type Filter */}
-          {uniqueTypes.length > 1 && (
-            <div className="flex items-center gap-0.5 bg-card border border-border rounded-lg p-0.5">
-              <button
-                onClick={() => setTypeFilter('all')}
-                className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
-                  typeFilter === 'all'
-                    ? 'bg-muted/80 text-foreground'
-                    : 'text-muted-foreground hover:text-foreground/80'
-                }`}
-              >
-                All Types
-              </button>
-              {uniqueTypes.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTypeFilter(t)}
-                  className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
-                    typeFilter === t
-                      ? 'bg-muted/80 text-foreground'
-                      : 'text-muted-foreground hover:text-foreground/80'
-                  }`}
-                >
-                  {typeIcon[t] || '📦'} {t}
-                </button>
-              ))}
-            </div>
-          )}
 
           {/* Sort Toggle */}
           <button
@@ -712,7 +658,7 @@ export default function Dashboard() {
                     <>
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-lg">{typeIcon[app.type || 'react'] || '📦'}</span>
+                          <span className="text-lg">📦</span>
                           <h3 className="font-semibold text-foreground group-hover:text-violet-300 transition-colors">
                             {app.name}
                           </h3>
@@ -860,7 +806,7 @@ export default function Dashboard() {
                   ) : (
                     <>
                       <div className="flex items-center gap-4">
-                        <span className="text-lg">{typeIcon[app.type || 'react'] || '📦'}</span>
+                        <span className="text-lg">📦</span>
                         <div>
                           <p className="text-sm font-semibold text-foreground group-hover:text-violet-300 transition-colors">
                             {app.name}

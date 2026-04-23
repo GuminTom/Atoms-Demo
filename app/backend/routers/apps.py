@@ -23,7 +23,6 @@ class AppsData(BaseModel):
     """Entity data schema (for create/update)"""
     name: str
     description: str = None
-    type: str = None
     status: str = None
     agent_mode: str = None
     thumbnail: str = None
@@ -33,7 +32,6 @@ class AppsUpdateData(BaseModel):
     """Update entity data (partial updates allowed)"""
     name: Optional[str] = None
     description: Optional[str] = None
-    type: Optional[str] = None
     status: Optional[str] = None
     agent_mode: Optional[str] = None
     thumbnail: Optional[str] = None
@@ -45,7 +43,6 @@ class AppsResponse(BaseModel):
     user_id: str
     name: str
     description: Optional[str] = None
-    type: Optional[str] = None
     status: Optional[str] = None
     agent_mode: Optional[str] = None
     thumbnail: Optional[str] = None

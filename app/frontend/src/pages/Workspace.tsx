@@ -120,7 +120,6 @@ export default function Workspace() {
   const [appName, setAppName] = useState('New App');
   const [showNewApp, setShowNewApp] = useState(!appId);
   const [newAppName, setNewAppName] = useState('');
-  const [newAppType, setNewAppType] = useState('react');
   const [files, setFiles] = useState<FileItem[]>([]);
   const [activeFile, setActiveFile] = useState<string>('');
   const [activeFileContent, setActiveFileContent] = useState<string>('');
@@ -365,10 +364,9 @@ export default function Workspace() {
     try {
       const res = await api.post('/api/v1/entities/apps', {
         name: newAppName,
-        type: newAppType,
         status: 'draft',
         agent_mode: mode,
-        description: `A ${newAppType} application`,
+        description: `An app created with ${mode} mode`,
       });
       if (res?.id) {
         setShowNewApp(false);
@@ -523,24 +521,6 @@ export default function Workspace() {
                 placeholder="My Awesome App"
                 className="bg-muted border-border text-foreground placeholder:text-muted-foreground/70 focus:border-violet-500"
               />
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-1.5 block">Project Type</label>
-              <div className="grid grid-cols-3 gap-2">
-                {['react', 'vue', 'static'].map(type => (
-                  <button
-                    key={type}
-                    onClick={() => setNewAppType(type)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                      newAppType === type
-                        ? 'bg-violet-500/20 text-violet-400 border border-violet-500/50'
-                        : 'bg-muted text-muted-foreground border border-border hover:border-muted-foreground/30'
-                    }`}
-                  >
-                    {type === 'react' ? '⚛️ React' : type === 'vue' ? '💚 Vue' : '📄 Static'}
-                  </button>
-                ))}
-              </div>
             </div>
             <div>
               <label className="text-sm text-muted-foreground mb-1.5 block">Agent Mode</label>

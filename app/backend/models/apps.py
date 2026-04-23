@@ -10,7 +10,6 @@ class Apps(Base):
     user_id = Column(String, nullable=False)
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
-    type = Column(String, nullable=True)
     status = Column(String, nullable=True)
     agent_mode = Column(String, nullable=True)
     thumbnail = Column(String, nullable=True)

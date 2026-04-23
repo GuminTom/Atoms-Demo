@@ -22,4 +22,5 @@ last_updated: 2026-04-22T12:52:54Z
 - 2026-04-22: Fixed "Create & Start Coding" failure — root cause was web-sdk not forwarding Authorization headers, causing 401 on authenticated endpoints. Replaced api helper with native fetch that reliably attaches Bearer token; added error UI and loading state on Create App dialog. Lint and build pass.
 - 2026-04-22: Added back arrow button to Workspace project page top bar — users can now click it to return to the home page. Lint and build pass.
 - 2026-04-22: Added back arrow buttons to all sub-pages (Statistics, Profile, Settings, Deployments) — each navigates to home page. Lint and build pass.
+- 2026-04-22: Removed "Project Type" functionality completely. Frontend: removed newAppType state, Project Type selector UI, and related payload from Workspace.tsx; removed type field, typeFilter, typeIcon map, type filter UI from Index.tsx (replaced type icons with generic 📦). Backend: removed type column from Apps model and type field from all three Pydantic schemas. Lint, build, and py_compile all pass.
 
