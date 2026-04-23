@@ -465,7 +465,12 @@ export default function Workspace() {
         throw new Error(errDetail);
       }
 
-      // Parse SSE stream
+      // Parse SSE stream.
+      // Per the SSE spec, events are separated by a blank line, which can
+      // be encoded as either "\n\n" (LF) or "\r\n\r\n" (CRLF). The backend
+      // here uses CRLF, so we normalize CRLF to LF first and then split on
+      // "\n\n". Without this normalization the parser would never find an
+      // event boundary and nothing would render on screen.
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
@@ -475,31 +480,37 @@ export default function Workspace() {
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
 
-        // SSE messages are separated by double newlines
+        // Normalize CRLF -> LF for consistent boundary splitting.
+        buffer = buffer.replace(/\r\n/g, '\n');
+
         const parts = buffer.split('\n\n');
         buffer = parts.pop() || '';
 
         for (const part of parts) {
           const lines = part.split('\n');
+          // An SSE "data:" payload can span multiple lines; join them.
+          const dataLines: string[] = [];
           for (const line of lines) {
             if (!line.startsWith('data:')) continue;
-            const data = line.slice(5).trim();
-            if (!data || data === '[DONE]') continue;
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed?.content) {
-                streamingContentRef.current += parsed.content;
-                setMessages(prev =>
-                  prev.map(m =>
-                    m.id === agentMsgId
-                      ? { ...m, content: streamingContentRef.current }
-                      : m
-                  )
-                );
-              }
-            } catch {
-              // Ignore malformed chunks
+            dataLines.push(line.slice(5).replace(/^ /, ''));
+          }
+          if (dataLines.length === 0) continue;
+          const data = dataLines.join('\n').trim();
+          if (!data || data === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed?.content) {
+              streamingContentRef.current += parsed.content;
+              setMessages(prev =>
+                prev.map(m =>
+                  m.id === agentMsgId
+                    ? { ...m, content: streamingContentRef.current }
+                    : m
+                )
+              );
             }
+          } catch {
+            // Ignore malformed chunks (e.g. heartbeats).
           }
         }
       }
