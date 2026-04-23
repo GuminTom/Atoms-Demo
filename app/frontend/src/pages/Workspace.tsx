@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, type KeyboardEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { api, client } from '../lib/api';
+import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { usePreferences } from '../contexts/PreferencesContext';
 import { Button } from '../components/ui/button';
@@ -426,41 +426,85 @@ export default function Workspace() {
         content: m.content,
       }));
 
-      await client.ai.gentxt({
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...chatHistory,
-          { role: 'user', content: userContent },
-        ],
-        model: 'deepseek-v3.2',
-        stream: true,
-        onChunk: (chunk: { content?: string }) => {
-          if (chunk.content) {
-            streamingContentRef.current += chunk.content;
-            setMessages(prev =>
-              prev.map(m =>
-                m.id === agentMsgId
-                  ? { ...m, content: streamingContentRef.current }
-                  : m
-              )
-            );
-          }
-        },
-        onComplete: () => {
-          setSending(false);
-        },
-        onError: (error: { message?: string }) => {
-          setMessages(prev =>
-            prev.map(m =>
-              m.id === agentMsgId
-                ? { ...m, content: m.content || `Error: ${error.message || 'Failed to get response'}` }
-                : m
-            )
-          );
-          setSending(false);
-        },
-        timeout: 60_000,
+      // Use native fetch with SSE streaming instead of web-sdk client.ai.gentxt.
+      // The SDK's internal AbortController can abort without a clear reason
+      // when its session context is not in sync with our local-auth users
+      // (especially newly registered accounts), which previously caused
+      // "signal is aborted without reason" errors here.
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream',
+      };
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const response = await fetch('/api/v1/aihub/gentxt', {
+        method: 'POST',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...chatHistory,
+            { role: 'user', content: userContent },
+          ],
+          model: 'deepseek-v3.2',
+          stream: true,
+        }),
       });
+
+      if (!response.ok || !response.body) {
+        const errText = await response.text().catch(() => '');
+        let errDetail = `Request failed with status ${response.status}`;
+        try {
+          const parsed = JSON.parse(errText);
+          errDetail = parsed?.detail || parsed?.message || errDetail;
+        } catch {
+          if (errText) errDetail = errText;
+        }
+        throw new Error(errDetail);
+      }
+
+      // Parse SSE stream
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        // SSE messages are separated by double newlines
+        const parts = buffer.split('\n\n');
+        buffer = parts.pop() || '';
+
+        for (const part of parts) {
+          const lines = part.split('\n');
+          for (const line of lines) {
+            if (!line.startsWith('data:')) continue;
+            const data = line.slice(5).trim();
+            if (!data || data === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed?.content) {
+                streamingContentRef.current += parsed.content;
+                setMessages(prev =>
+                  prev.map(m =>
+                    m.id === agentMsgId
+                      ? { ...m, content: streamingContentRef.current }
+                      : m
+                  )
+                );
+              }
+            } catch {
+              // Ignore malformed chunks
+            }
+          }
+        }
+      }
+
+      setSending(false);
     } catch (err: any) {
       setMessages(prev =>
         prev.map(m =>
