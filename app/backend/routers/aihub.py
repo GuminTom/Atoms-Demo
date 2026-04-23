@@ -132,6 +132,11 @@ async def generate_text(
         if request.stream:
             # Streaming response - wrap content in JSON for SSE
             async def event_generator():
+                # Emit an initial empty chunk immediately so Cloudflare /
+                # reverse proxies see bytes within their idle-timeout window
+                # (e.g. Cloudflare 524 after ~100s without headers/bytes on
+                # long-running AI requests). This keeps the connection warm.
+                yield json.dumps({"content": ""})
                 try:
                     async for content in service.gentxt_stream(request):
                         yield json.dumps({"content": content})
@@ -141,7 +146,11 @@ async def generate_text(
                 finally:
                     yield "[DONE]"
 
-            return EventSourceResponse(event_generator(), media_type="text/event-stream")
+            return EventSourceResponse(
+                event_generator(),
+                media_type="text/event-stream",
+                ping=15,
+            )
         else:
             # Non-streaming response
             response = await service.gentxt(request)
