@@ -108,6 +108,108 @@ function buildEntityQueryUrl(
   return query ? `${basePath}?${query}` : basePath;
 }
 
+/**
+ * Parse the agent's markdown response for fenced code blocks that
+ * represent generated project files, and return them as
+ * `{ path, content }` pairs. We accept several popular conventions so
+ * we can be forgiving about how the model formats its output:
+ *
+ *   1. Path on the fence line:          ```tsx src/App.tsx
+ *   2. Path in a comment on line 1:     // File: src/App.tsx
+ *                                       # file: app/main.py
+ *                                       /* path: src/lib/x.ts *\/
+ *                                       <!-- path: index.html -->
+ *   3. Path in a markdown header just
+ *      above the fence:                 **src/App.tsx**
+ *                                       `src/App.tsx`
+ *
+ * A code block without any path hint is ignored (it's likely a usage
+ * snippet, not a file). Paths starting with `/`, containing `..`, or
+ * not containing a `/` or a `.` are rejected as sanity checks.
+ */
+interface ParsedCodeFile {
+  path: string;
+  content: string;
+  language: string;
+}
+
+function parseCodeFilesFromMarkdown(md: string): ParsedCodeFile[] {
+  const results: ParsedCodeFile[] = [];
+  if (!md) return results;
+
+  // Regex for fenced code blocks. Capture the optional info string on
+  // the opening fence (e.g. "tsx src/App.tsx") and the body.
+  const fenceRe = /```([^\n]*)\n([\s\S]*?)```/g;
+  let m: RegExpExecArray | null;
+  let lastIndex = 0;
+  while ((m = fenceRe.exec(md)) !== null) {
+    const info = (m[1] || '').trim();
+    let body = m[2] || '';
+    const before = md.slice(lastIndex, m.index);
+    lastIndex = fenceRe.lastIndex;
+
+    // 1) Try to pull the path off the info string.
+    //    Format: "<lang> <path>" — the first token is the language,
+    //    anything after is treated as the path hint.
+    let lang = '';
+    let path = '';
+    if (info) {
+      const parts = info.split(/\s+/);
+      lang = parts[0] || '';
+      if (parts.length > 1) {
+        path = parts.slice(1).join(' ').replace(/^["'`]|["'`]$/g, '').trim();
+      }
+    }
+
+    // 2) Try first-line comment inside the body.
+    if (!path) {
+      const firstLine = body.split('\n', 1)[0] || '';
+      const commentPathRe =
+        /^\s*(?:\/\/|#|<!--|\/\*)\s*(?:file|path|filename)\s*[:=]\s*([^\s*->]+)\s*(?:\*\/|-->)?\s*$/i;
+      const fm = firstLine.match(commentPathRe);
+      if (fm) {
+        path = fm[1].trim();
+        // Strip that comment line from the body so the saved file is clean.
+        body = body.slice(firstLine.length).replace(/^\n/, '');
+      }
+    }
+
+    // 3) Try the last non-empty line just above the fence, which may be
+    //    a markdown caption like `**src/App.tsx**` or inline code.
+    if (!path) {
+      const preLines = before.trimEnd().split('\n');
+      for (let i = preLines.length - 1; i >= 0 && i >= preLines.length - 3; i--) {
+        const line = preLines[i].trim();
+        if (!line) continue;
+        const cap = line.match(/[`*_]*([\w./\-+]+\.[\w]+)[`*_]*$/);
+        if (cap && cap[1].includes('.')) {
+          path = cap[1];
+        }
+        break;
+      }
+    }
+
+    // Sanity checks on the path.
+    if (!path) continue;
+    if (path.startsWith('/')) path = path.replace(/^\/+/, '');
+    if (!path || path.includes('..') || path.length > 200) continue;
+    if (!path.includes('/') && !path.includes('.')) continue;
+
+    // Drop the trailing newline that commonly sits right before the
+    // closing fence, but keep any intentional trailing blank lines
+    // inside the file beyond that one.
+    if (body.endsWith('\n')) body = body.slice(0, -1);
+
+    results.push({ path, content: body, language: lang || getLanguage(path) });
+  }
+
+  // Deduplicate by path — keep the LAST occurrence so a later block can
+  // intentionally override an earlier one in the same reply.
+  const byPath = new Map<string, ParsedCodeFile>();
+  for (const f of results) byPath.set(f.path, f);
+  return Array.from(byPath.values());
+}
+
 export default function Workspace() {
   const { appId } = useParams();
   const navigate = useNavigate();
@@ -278,6 +380,90 @@ export default function Workspace() {
       setFiles([]);
     }
   }, [appId, activeFile]);
+
+  // Track auto-save of generated code files so users get feedback in the
+  // top bar and we can gracefully recover on errors.
+  const [codegenStatus, setCodegenStatus] = useState<{
+    state: 'idle' | 'saving' | 'saved' | 'error';
+    created: number;
+    updated: number;
+    message?: string;
+  }>({ state: 'idle', created: 0, updated: 0 });
+
+  /**
+   * Persist parsed code files into the app_files table. For each file:
+   *   - If a file with the same path already exists, PUT its content.
+   *   - Otherwise, POST a new entity row.
+   * Then refresh the left-hand file tree so the user sees the result.
+   */
+  const saveGeneratedFiles = useCallback(
+    async (generated: ParsedCodeFile[]) => {
+      if (!appId || generated.length === 0) return;
+      setCodegenStatus({ state: 'saving', created: 0, updated: 0 });
+
+      // Snapshot the current path->id map once so we don't hammer the
+      // backend with lookups; use the freshest version via a GET.
+      let existing: FileItem[] = [];
+      try {
+        const res = await api.get(
+          buildEntityQueryUrl(
+            '/api/v1/entities/app_files',
+            { app_id: Number(appId) },
+            { limit: 500, sort: 'path' }
+          )
+        );
+        existing = res?.items || [];
+      } catch {
+        existing = files;
+      }
+      const byPath = new Map(existing.map(f => [f.path, f] as const));
+
+      let created = 0;
+      let updated = 0;
+      const errors: string[] = [];
+
+      for (const gen of generated) {
+        try {
+          const prev = byPath.get(gen.path);
+          if (prev) {
+            await api.put(`/api/v1/entities/app_files/${prev.id}`, {
+              content: gen.content,
+              language: gen.language,
+            });
+            updated += 1;
+          } else {
+            await api.post('/api/v1/entities/app_files', {
+              app_id: Number(appId),
+              path: gen.path,
+              content: gen.content,
+              language: gen.language,
+            });
+            created += 1;
+          }
+        } catch (err: any) {
+          errors.push(`${gen.path}: ${err?.message || 'save failed'}`);
+        }
+      }
+
+      await loadFiles();
+
+      if (errors.length > 0) {
+        setCodegenStatus({
+          state: 'error',
+          created,
+          updated,
+          message: errors[0],
+        });
+      } else {
+        setCodegenStatus({ state: 'saved', created, updated });
+        setTimeout(
+          () => setCodegenStatus({ state: 'idle', created: 0, updated: 0 }),
+          4000
+        );
+      }
+    },
+    [appId, files, loadFiles]
+  );
 
   const loadSessions = async () => {
     if (!appId) return;
@@ -536,9 +722,25 @@ export default function Workspace() {
     setMessages(prev => [...prev, agentMsg]);
 
     try {
-      const systemPrompt = mode === 'team'
-        ? `You are ${agentName}, part of a multi-agent coding team. You collaborate with other agents (Mike the leader, Emma the PM, Bob the architect, Alex the engineer, David the data analyst, Sarah the SEO specialist). Help the user build their application. Be concise and actionable.`
-        : `You are Alex, an expert engineer agent. Help the user build their application with clean, production-ready code. Be concise and actionable.`;
+      // Instruct the model to emit every code file as a fenced block
+      // whose info string is "<language> <path>". This is the cheapest
+      // reliable convention we can parse client-side without a tool-call
+      // protocol, and it keeps the visual appearance in the chat clean.
+      const codeGenRules = [
+        '',
+        'IMPORTANT — Code output protocol:',
+        '- When you produce a file for the project, wrap it in a fenced code block whose first line is `\\`\\`\\`<language> <relative/path>`, e.g. `\\`\\`\\`tsx src/App.tsx` or `\\`\\`\\`python app/main.py`.',
+        '- Use frontend/ and backend/ (or src/, app/) prefixes to make the target layer explicit when the project is full-stack.',
+        '- Always include the COMPLETE file content inside the block — never use ellipses or "// ... unchanged" placeholders. The content in the block will be saved verbatim as the final file.',
+        '- One file per code block. If you need to update multiple files, emit multiple blocks in sequence.',
+        '- Short inline snippets for illustration only (no path) are still allowed — they will not be saved.',
+      ].join('\n');
+
+      const systemPrompt =
+        (mode === 'team'
+          ? `You are ${agentName}, part of a multi-agent coding team. You collaborate with other agents (Mike the leader, Emma the PM, Bob the architect, Alex the engineer, David the data analyst, Sarah the SEO specialist). Help the user build their application. Be concise and actionable.`
+          : `You are Alex, an expert engineer agent. Help the user build their application with clean, production-ready code. Be concise and actionable.`) +
+        codeGenRules;
 
       const chatHistory = messages.slice(-10).map(m => ({
         role: m.role === 'user' ? 'user' as const : 'assistant' as const,
@@ -706,6 +908,20 @@ export default function Workspace() {
       );
       messagesRef.current = finalMsgs;
       persistMessages(finalMsgs);
+
+      // Parse the agent's reply for generated code files and upsert
+      // them into the app_files table. This is what actually turns the
+      // chat into "vibe coding" rather than just a text conversation.
+      try {
+        const generated = parseCodeFilesFromMarkdown(streamingContentRef.current);
+        if (generated.length > 0) {
+          await saveGeneratedFiles(generated);
+        }
+      } catch (genErr) {
+        // Non-fatal — the chat message is already saved, the user can
+        // simply ask the agent to regenerate or copy files manually.
+        console.error('Failed to save generated files:', genErr);
+      }
     } catch (err: any) {
       if (streamRafRef.current != null) {
         cancelAnimationFrame(streamRafRef.current);
@@ -991,6 +1207,26 @@ export default function Workspace() {
             {saveStatus === 'saved' && (
               <span className="text-[10px] text-emerald-400 flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" /> Saved
+              </span>
+            )}
+            {/* Codegen indicator — shows when files parsed from the AI
+                response are being written to the app_files store. */}
+            {codegenStatus.state === 'saving' && (
+              <span className="text-[10px] text-cyan-400 flex items-center gap-1">
+                <Loader2 className="w-3 h-3 animate-spin" /> Writing files…
+              </span>
+            )}
+            {codegenStatus.state === 'saved' && (codegenStatus.created + codegenStatus.updated) > 0 && (
+              <span className="text-[10px] text-cyan-400 flex items-center gap-1" title="Files auto-generated from the chat">
+                <FileCode className="w-3 h-3" />
+                {codegenStatus.created > 0 && `+${codegenStatus.created} new`}
+                {codegenStatus.created > 0 && codegenStatus.updated > 0 && ' · '}
+                {codegenStatus.updated > 0 && `${codegenStatus.updated} updated`}
+              </span>
+            )}
+            {codegenStatus.state === 'error' && (
+              <span className="text-[10px] text-rose-400 flex items-center gap-1" title={codegenStatus.message}>
+                <X className="w-3 h-3" /> File save error
               </span>
             )}
           </div>
