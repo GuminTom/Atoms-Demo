@@ -451,22 +451,6 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-card border-border hover:border-border transition-colors">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider">Agent Mode</p>
-                <p className="text-2xl font-bold text-foreground mt-1 flex items-center gap-2">
-                  <Bot className="w-5 h-5 text-cyan-400" />
-                  <Users className="w-5 h-5 text-violet-400" />
-                </p>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-cyan-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Search, Filter & Sort Bar */}
@@ -896,41 +880,6 @@ export default function Dashboard() {
             ))}
           </div>
         )}
-      </div>
-
-      {/* Quick Actions */}
-      <div>
-        <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card
-            className="bg-card border-border hover:border-violet-500/50 transition-all cursor-pointer group"
-            onClick={() => navigate('/workspace')}
-          >
-            <CardContent className="p-5 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-violet-500/15 flex items-center justify-center group-hover:bg-violet-500/25 transition-colors">
-                <Bot className="w-6 h-6 text-violet-400" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Engineer Mode</h3>
-                <p className="text-muted-foreground text-sm">Single agent for focused coding tasks</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card
-            className="bg-card border-border hover:border-cyan-500/50 transition-all cursor-pointer group"
-            onClick={() => navigate('/workspace')}
-          >
-            <CardContent className="p-5 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-cyan-500/15 flex items-center justify-center group-hover:bg-cyan-500/25 transition-colors">
-                <Users className="w-6 h-6 text-cyan-400" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Team Mode</h3>
-                <p className="text-muted-foreground text-sm">Multi-agent collaboration for complex projects</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
 
       {/* Click-away handler for menu */}
