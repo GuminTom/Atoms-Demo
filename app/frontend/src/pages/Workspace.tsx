@@ -557,29 +557,69 @@ export default function Workspace() {
       };
       if (token) headers.Authorization = `Bearer ${token}`;
 
-      const response = await fetch('/api/v1/aihub/gentxt', {
-        method: 'POST',
-        headers,
-        credentials: 'include',
-        body: JSON.stringify({
-          messages: [
-            { role: 'system', content: systemPrompt },
-            ...chatHistory,
-            { role: 'user', content: userContent },
-          ],
-          model: 'deepseek-v3.2',
-          stream: true,
-        }),
-      });
+      // Helper: call the gentxt endpoint. We isolate this into a helper so
+      // we can transparently retry on transient upstream failures such as
+      // Cloudflare 524 (origin timeout) that sometimes occur on the first
+      // request after a cold start on the deployed environment.
+      const callGentxt = async (): Promise<Response> =>
+        fetch('/api/v1/aihub/gentxt', {
+          method: 'POST',
+          headers,
+          credentials: 'include',
+          body: JSON.stringify({
+            messages: [
+              { role: 'system', content: systemPrompt },
+              ...chatHistory,
+              { role: 'user', content: userContent },
+            ],
+            model: 'deepseek-v3.2',
+            stream: true,
+          }),
+        });
+
+      let response = await callGentxt();
+
+      // Friendly error extraction. Cloudflare returns an HTML page (with
+      // status 524 / 502 / 503) when the origin times out or is
+      // unavailable; surfacing raw HTML to the user is confusing, so we
+      // detect it and present a concise human-readable message instead,
+      // and transparently retry once for a likely-recoverable timeout.
+      const isTransientUpstream = (status: number) =>
+        status === 502 || status === 503 || status === 504 || status === 524;
+
+      if (!response.ok && isTransientUpstream(response.status)) {
+        // Drain the error body before retrying so the connection is released.
+        await response.text().catch(() => '');
+        response = await callGentxt();
+      }
 
       if (!response.ok || !response.body) {
         const errText = await response.text().catch(() => '');
         let errDetail = `Request failed with status ${response.status}`;
-        try {
-          const parsed = JSON.parse(errText);
-          errDetail = parsed?.detail || parsed?.message || errDetail;
-        } catch {
-          if (errText) errDetail = errText;
+
+        // Cloudflare / nginx error pages come back as HTML — don't dump
+        // them into the chat. Translate the status into a friendly hint.
+        const looksLikeHtml = /^\s*<(!doctype|html)/i.test(errText);
+        if (looksLikeHtml || !errText) {
+          if (response.status === 524) {
+            errDetail =
+              'The AI service took too long to respond (upstream timeout). Please try again in a moment.';
+          } else if (response.status === 502 || response.status === 503 || response.status === 504) {
+            errDetail =
+              'The AI service is temporarily unavailable. Please try again in a moment.';
+          } else if (response.status === 401) {
+            errDetail = 'Your session has expired. Please sign in again.';
+          } else {
+            errDetail = `AI service error (status ${response.status}). Please try again.`;
+          }
+        } else {
+          try {
+            const parsed = JSON.parse(errText);
+            errDetail = parsed?.detail || parsed?.message || errDetail;
+          } catch {
+            // Non-HTML, non-JSON text — show the first 200 chars only.
+            errDetail = errText.slice(0, 200);
+          }
         }
         throw new Error(errDetail);
       }

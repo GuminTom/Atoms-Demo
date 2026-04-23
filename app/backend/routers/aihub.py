@@ -130,12 +130,25 @@ async def generate_text(
 
         # Decide response mode based on the `stream` parameter
         if request.stream:
-            # Streaming response - wrap content in JSON for SSE
+            # Streaming response - wrap content in JSON for SSE.
+            #
+            # Why so much keep-alive machinery?
+            # On deployed environments (e.g. *.pub.atoms.dev) Cloudflare
+            # sits in front of the origin and enforces a ~100s idle
+            # timeout. If the origin takes longer than that to produce
+            # the first byte (cold-start on the LLM backend, a slow
+            # model, a long prompt, etc.) Cloudflare will return a 524.
+            # We defend against this with three layers:
+            #   1. An immediate empty JSON chunk emitted BEFORE awaiting
+            #      the upstream, so Cloudflare sees bytes right away.
+            #   2. sse_starlette `ping=10` which sends a comment line
+            #      every 10 seconds while the generator is awaiting
+            #      the next upstream chunk, well under the 100s budget.
+            #   3. A `send_timeout` guard so a hung generator cannot
+            #      stall the connection silently — this also helps
+            #      surface errors rather than hanging forever.
             async def event_generator():
-                # Emit an initial empty chunk immediately so Cloudflare /
-                # reverse proxies see bytes within their idle-timeout window
-                # (e.g. Cloudflare 524 after ~100s without headers/bytes on
-                # long-running AI requests). This keeps the connection warm.
+                # 1) Immediate empty chunk to warm up the pipe.
                 yield json.dumps({"content": ""})
                 try:
                     async for content in service.gentxt_stream(request):
@@ -149,7 +162,16 @@ async def generate_text(
             return EventSourceResponse(
                 event_generator(),
                 media_type="text/event-stream",
-                ping=15,
+                ping=10,
+                send_timeout=120,
+                headers={
+                    # Discourage proxies (Cloudflare, nginx) from
+                    # buffering the stream, which would defeat the
+                    # keep-alive pings above.
+                    "Cache-Control": "no-cache, no-transform",
+                    "X-Accel-Buffering": "no",
+                    "Connection": "keep-alive",
+                },
             )
         else:
             # Non-streaming response
